@@ -1,13 +1,13 @@
 import { useMemo, useState } from "react";
 import type { AppData, Expense } from "../types";
 import { computeBalances, computeSettlements, formatVND } from "../utils/settlement";
-import { compareWeekKeys, getWeekKey } from "../utils/week";
 import { downloadAppData } from "../utils/storage";
+import { compareWeekKeys, getWeekKey } from "../utils/week";
 import BalancesSummary from "./BalancesSummary";
-import SettlementsList from "./SettlementsList";
-import WeekCard from "./WeekCard";
 import ExpenseModal from "./ExpenseModal";
 import MembersModal from "./MembersModal";
+import SettlementsList from "./SettlementsList";
+import WeekCard from "./WeekCard";
 
 type Props = {
   data: AppData;
@@ -24,19 +24,13 @@ export default function Dashboard({ data, setData, onReset }: Props) {
 
   const pendingExpenses = useMemo(
     () => data.expenses.filter((e) => !doneSet.has(getWeekKey(e.date))),
-    [data.expenses, doneSet]
+    [data.expenses, doneSet],
   );
 
-  const balances = useMemo(
-    () => computeBalances(pendingExpenses, data.members),
-    [pendingExpenses, data.members]
-  );
+  const balances = useMemo(() => computeBalances(pendingExpenses, data.members), [pendingExpenses, data.members]);
   const settlements = useMemo(() => computeSettlements(balances), [balances]);
 
-  const totalSpend = useMemo(
-    () => data.expenses.reduce((s, e) => s + e.amount, 0),
-    [data.expenses]
-  );
+  const totalSpend = useMemo(() => data.expenses.reduce((s, e) => s + e.amount, 0), [data.expenses]);
 
   const weeks = useMemo(() => {
     const map = new Map<string, Expense[]>();
@@ -45,24 +39,17 @@ export default function Dashboard({ data, setData, onReset }: Props) {
       if (!map.has(k)) map.set(k, []);
       map.get(k)!.push(e);
     }
-    return Array.from(map.entries()).sort((a, b) =>
-      compareWeekKeys(b[0], a[0])
-    );
+    return Array.from(map.entries()).sort((a, b) => compareWeekKeys(b[0], a[0]));
   }, [data.expenses]);
 
   const toggleWeekDone = (weekKey: string, done: boolean) => {
-    const next = done
-      ? Array.from(new Set([...data.doneWeeks, weekKey]))
-      : data.doneWeeks.filter((k) => k !== weekKey);
+    const next = done ? Array.from(new Set([...data.doneWeeks, weekKey])) : data.doneWeeks.filter((k) => k !== weekKey);
     setData({ ...data, doneWeeks: next });
   };
 
   const upsertExpense = (e: Expense) => {
     const idx = data.expenses.findIndex((x) => x.id === e.id);
-    const next =
-      idx >= 0
-        ? data.expenses.map((x) => (x.id === e.id ? e : x))
-        : [...data.expenses, e];
+    const next = idx >= 0 ? data.expenses.map((x) => (x.id === e.id ? e : x)) : [...data.expenses, e];
     setData({ ...data, expenses: next });
     setEditing(null);
     setAdding(false);
@@ -95,11 +82,15 @@ export default function Dashboard({ data, setData, onReset }: Props) {
             onClick={() => downloadAppData(data)}
             className="px-3 py-2 text-sm bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-medium"
           >
-            ⬇ Tải JSON
+            ⬇ Tải dữ liệu về máy
           </button>
           <button
             onClick={() => {
-              if (confirm("Quay lại màn hình bắt đầu? Dữ liệu chưa tải về sẽ mất.")) {
+              if (
+                confirm(
+                  "Quay lại màn hình bắt đầu? Dữ liệu lưu trong trình duyệt sẽ bị xóa, hãy tải JSON về trước nếu cần.",
+                )
+              ) {
                 onReset();
               }
             }}
@@ -113,28 +104,16 @@ export default function Dashboard({ data, setData, onReset }: Props) {
       <main className="max-w-5xl mx-auto p-4 space-y-6">
         <section className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <div className="bg-white border border-slate-200 rounded-xl p-4">
-            <div className="text-xs uppercase text-slate-500 tracking-wide">
-              Tổng chi
-            </div>
-            <div className="text-2xl font-bold text-slate-800 mt-1">
-              {formatVND(totalSpend)}
-            </div>
+            <div className="text-xs uppercase text-slate-500 tracking-wide">Tổng chi</div>
+            <div className="text-2xl font-bold text-slate-800 mt-1">{formatVND(totalSpend)}</div>
           </div>
           <div className="bg-white border border-slate-200 rounded-xl p-4">
-            <div className="text-xs uppercase text-slate-500 tracking-wide">
-              Số chi tiêu
-            </div>
-            <div className="text-2xl font-bold text-slate-800 mt-1">
-              {data.expenses.length}
-            </div>
+            <div className="text-xs uppercase text-slate-500 tracking-wide">Số chi tiêu</div>
+            <div className="text-2xl font-bold text-slate-800 mt-1">{data.expenses.length}</div>
           </div>
           <div className="bg-white border border-slate-200 rounded-xl p-4">
-            <div className="text-xs uppercase text-slate-500 tracking-wide">
-              Số tuần
-            </div>
-            <div className="text-2xl font-bold text-slate-800 mt-1">
-              {weeks.length}
-            </div>
+            <div className="text-xs uppercase text-slate-500 tracking-wide">Số tuần</div>
+            <div className="text-2xl font-bold text-slate-800 mt-1">{weeks.length}</div>
           </div>
         </section>
 
@@ -148,9 +127,7 @@ export default function Dashboard({ data, setData, onReset }: Props) {
         </section>
 
         <section>
-          <h2 className="text-sm font-semibold text-slate-600 uppercase tracking-wide mb-3">
-            Số dư từng thành viên
-          </h2>
+          <h2 className="text-sm font-semibold text-slate-600 uppercase tracking-wide mb-3">Số dư từng thành viên</h2>
           <BalancesSummary balances={balances} />
         </section>
 
@@ -162,9 +139,7 @@ export default function Dashboard({ data, setData, onReset }: Props) {
         </section>
 
         <section>
-          <h2 className="text-sm font-semibold text-slate-600 uppercase tracking-wide mb-3">
-            Chi tiêu theo tuần
-          </h2>
+          <h2 className="text-sm font-semibold text-slate-600 uppercase tracking-wide mb-3">Chi tiêu theo tuần</h2>
           {weeks.length === 0 ? (
             <div className="p-8 bg-white border border-dashed border-slate-300 rounded-xl text-center text-slate-500">
               Chưa có chi tiêu nào. Bấm "Thêm chi tiêu mới" để bắt đầu.
