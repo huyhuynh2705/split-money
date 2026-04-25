@@ -20,9 +20,16 @@ export default function Dashboard({ data, setData, onReset }: Props) {
   const [adding, setAdding] = useState(false);
   const [showMembers, setShowMembers] = useState(false);
 
+  const doneSet = useMemo(() => new Set(data.doneWeeks), [data.doneWeeks]);
+
+  const pendingExpenses = useMemo(
+    () => data.expenses.filter((e) => !doneSet.has(getWeekKey(e.date))),
+    [data.expenses, doneSet]
+  );
+
   const balances = useMemo(
-    () => computeBalances(data.expenses, data.members),
-    [data]
+    () => computeBalances(pendingExpenses, data.members),
+    [pendingExpenses, data.members]
   );
   const settlements = useMemo(() => computeSettlements(balances), [balances]);
 
@@ -42,6 +49,13 @@ export default function Dashboard({ data, setData, onReset }: Props) {
       compareWeekKeys(b[0], a[0])
     );
   }, [data.expenses]);
+
+  const toggleWeekDone = (weekKey: string, done: boolean) => {
+    const next = done
+      ? Array.from(new Set([...data.doneWeeks, weekKey]))
+      : data.doneWeeks.filter((k) => k !== weekKey);
+    setData({ ...data, doneWeeks: next });
+  };
 
   const upsertExpense = (e: Expense) => {
     const idx = data.expenses.findIndex((x) => x.id === e.id);
@@ -142,7 +156,7 @@ export default function Dashboard({ data, setData, onReset }: Props) {
 
         <section>
           <h2 className="text-sm font-semibold text-slate-600 uppercase tracking-wide mb-3">
-            Giao dịch cần thực hiện (tổng thể)
+            Giao dịch cần thực hiện (chưa thanh toán)
           </h2>
           <SettlementsList settlements={settlements} />
         </section>
@@ -163,7 +177,9 @@ export default function Dashboard({ data, setData, onReset }: Props) {
                   weekKey={k}
                   expenses={exps}
                   members={data.members}
-                  defaultOpen={idx === 0}
+                  defaultOpen={idx === 0 && !doneSet.has(k)}
+                  done={doneSet.has(k)}
+                  onToggleDone={(d) => toggleWeekDone(k, d)}
                   onEdit={(e) => setEditing(e)}
                   onDelete={deleteExpense}
                 />

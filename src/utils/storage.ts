@@ -68,6 +68,7 @@ function convertLegacy(raw: unknown): AppData | null {
   return {
     members: Array.from(memberSet),
     expenses,
+    doneWeeks: [],
   };
 }
 
@@ -92,6 +93,9 @@ export function parseAppData(text: string): AppData {
           : [],
         note: String(e.note ?? ""),
       })),
+      doneWeeks: Array.isArray(r.doneWeeks)
+        ? r.doneWeeks.map((s) => String(s))
+        : [],
     };
   }
   const legacy = convertLegacy(raw);

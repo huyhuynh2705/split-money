@@ -10,6 +10,7 @@ export type Expense = {
 export type AppData = {
   members: string[];
   expenses: Expense[];
+  doneWeeks: string[];
 };
 
 export type Balance = {

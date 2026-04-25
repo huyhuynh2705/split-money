@@ -9,6 +9,8 @@ type Props = {
   expenses: Expense[];
   members: string[];
   defaultOpen?: boolean;
+  done: boolean;
+  onToggleDone: (done: boolean) => void;
   onEdit: (e: Expense) => void;
   onDelete: (id: string) => void;
 };
@@ -18,6 +20,8 @@ export default function WeekCard({
   expenses,
   members,
   defaultOpen = false,
+  done,
+  onToggleDone,
   onEdit,
   onDelete,
 }: Props) {
@@ -49,12 +53,22 @@ export default function WeekCard({
   }, [expenses]);
 
   return (
-    <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
-      <button
-        onClick={() => setOpen((v) => !v)}
-        className="w-full p-4 flex items-center justify-between hover:bg-slate-50 transition"
+    <div
+      className={`border rounded-xl overflow-hidden shadow-sm transition ${
+        done
+          ? "bg-emerald-50/40 border-emerald-200"
+          : "bg-white border-slate-200"
+      }`}
+    >
+      <div
+        className={`w-full p-4 flex items-center justify-between gap-3 transition ${
+          done ? "hover:bg-emerald-50" : "hover:bg-slate-50"
+        }`}
       >
-        <div className="flex items-center gap-3">
+        <button
+          onClick={() => setOpen((v) => !v)}
+          className="flex items-center gap-3 flex-1 min-w-0 text-left"
+        >
           <span
             className={`transition-transform text-slate-400 ${
               open ? "rotate-90" : ""
@@ -62,17 +76,51 @@ export default function WeekCard({
           >
             ▶
           </span>
-          <div className="text-left">
-            <div className="font-semibold text-slate-800">{weekKey}</div>
+          <div className="min-w-0">
+            <div className="flex items-center gap-2 flex-wrap">
+              <span
+                className={`font-semibold ${
+                  done ? "text-emerald-800" : "text-slate-800"
+                }`}
+              >
+                {weekKey}
+              </span>
+              {done && (
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-semibold bg-emerald-100 text-emerald-700 rounded-full">
+                  ✓ Đã thanh toán
+                </span>
+              )}
+            </div>
             <div className="text-xs text-slate-500">
               {expenses.length} chi tiêu · {formatVND(total)}
             </div>
           </div>
+        </button>
+        <div className="flex items-center gap-3 shrink-0">
+          <div
+            className={`text-sm font-mono ${
+              done ? "text-emerald-700" : "text-slate-600"
+            }`}
+          >
+            {formatVND(total)}
+          </div>
+          <button
+            onClick={() => onToggleDone(!done)}
+            className={`text-xs px-3 py-1.5 rounded-lg font-medium transition ${
+              done
+                ? "bg-white border border-emerald-300 text-emerald-700 hover:bg-emerald-50"
+                : "bg-emerald-600 text-white hover:bg-emerald-700"
+            }`}
+            title={
+              done
+                ? "Đánh dấu là chưa thanh toán xong"
+                : "Đánh dấu tuần này đã thanh toán xong"
+            }
+          >
+            {done ? "↺ Mở lại" : "✓ Đã xong"}
+          </button>
         </div>
-        <div className="text-sm text-slate-600 font-mono">
-          {formatVND(total)}
-        </div>
-      </button>
+      </div>
 
       {open && (
         <div className="border-t border-slate-100 p-4 space-y-4 bg-slate-50">
@@ -164,7 +212,15 @@ export default function WeekCard({
             <div className="text-sm font-semibold text-slate-700 mb-2">
               Giao dịch cần thực hiện trong tuần
             </div>
-            <SettlementsList settlements={settlements} compact />
+            <SettlementsList
+              settlements={done ? [] : settlements}
+              emptyMessage={
+                done
+                  ? "Tuần này đã được đánh dấu thanh toán xong."
+                  : "Tất cả đã cân bằng. Không ai nợ ai."
+              }
+              compact
+            />
           </div>
         </div>
       )}

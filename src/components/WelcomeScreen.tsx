@@ -43,7 +43,7 @@ export default function WelcomeScreen({ onStart }: Props) {
       setError("Cần ít nhất 2 thành viên để bắt đầu.");
       return;
     }
-    onStart({ members, expenses: [] });
+    onStart({ members, expenses: [], doneWeeks: [] });
   };
 
   return (
