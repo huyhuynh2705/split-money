@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import type { Expense } from "../types";
-import { formatDateISO } from "../utils/week";
 import { newId } from "../utils/storage";
+import { formatDateISO } from "../utils/week";
 
 type Props = {
   members: string[];
@@ -10,21 +10,12 @@ type Props = {
   onClose: () => void;
 };
 
-export default function ExpenseModal({
-  members,
-  initial,
-  onSave,
-  onClose,
-}: Props) {
+export default function ExpenseModal({ members, initial, onSave, onClose }: Props) {
   const todayISO = formatDateISO(new Date());
   const [date, setDate] = useState(initial?.date ?? todayISO);
   const [payer, setPayer] = useState(initial?.payer ?? members[0] ?? "");
-  const [amount, setAmount] = useState<string>(
-    initial?.amount ? String(initial.amount) : ""
-  );
-  const [sharedWith, setSharedWith] = useState<string[]>(
-    initial?.sharedWith ?? members
-  );
+  const [amount, setAmount] = useState<string>(initial?.amount ? String(initial.amount) : "");
+  const [sharedWith, setSharedWith] = useState<string[]>(initial?.sharedWith ?? members);
   const [note, setNote] = useState(initial?.note ?? "");
   const [error, setError] = useState("");
 
@@ -37,9 +28,7 @@ export default function ExpenseModal({
   }, [onClose]);
 
   const toggleShared = (m: string) => {
-    setSharedWith((prev) =>
-      prev.includes(m) ? prev.filter((x) => x !== m) : [...prev, m]
-    );
+    setSharedWith((prev) => (prev.includes(m) ? prev.filter((x) => x !== m) : [...prev, m]));
   };
 
   const submit = () => {
@@ -47,8 +36,7 @@ export default function ExpenseModal({
     const amt = Number(amount.replace(/[.,\s]/g, ""));
     if (!payer) return setError("Vui lòng chọn người chi tiền.");
     if (!amt || amt <= 0) return setError("Số tiền phải lớn hơn 0.");
-    if (sharedWith.length === 0)
-      return setError("Cần ít nhất 1 người để chia tiền.");
+    if (sharedWith.length === 0) return setError("Cần ít nhất 1 người để chia tiền.");
     onSave({
       id: initial?.id ?? newId(),
       date,
@@ -66,18 +54,13 @@ export default function ExpenseModal({
   };
 
   return (
-    <div
-      className="fixed inset-0 bg-black/40 flex items-center justify-center p-4 z-50"
-      onClick={onClose}
-    >
+    <div className="fixed inset-0 bg-black/40 flex items-center justify-center p-4 z-50" onClick={onClose}>
       <div
         className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="p-6 border-b border-slate-100 flex items-center justify-between">
-          <h2 className="text-xl font-bold text-slate-800">
-            {initial ? "Sửa chi tiêu" : "Thêm chi tiêu"}
-          </h2>
+          <h2 className="text-xl font-bold text-slate-800">{initial ? "Sửa chi tiêu" : "Thêm chi tiêu"}</h2>
           <button
             onClick={onClose}
             className="text-slate-400 hover:text-slate-700 text-2xl leading-none"
@@ -89,9 +72,7 @@ export default function ExpenseModal({
 
         <div className="p-6 space-y-4">
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">
-              Ngày
-            </label>
+            <label className="block text-sm font-medium text-slate-700 mb-1">Ngày</label>
             <input
               type="date"
               value={date}
@@ -101,9 +82,7 @@ export default function ExpenseModal({
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">
-              Người chi tiền
-            </label>
+            <label className="block text-sm font-medium text-slate-700 mb-1">Người chi tiền</label>
             <select
               value={payer}
               onChange={(e) => setPayer(e.target.value)}
@@ -118,9 +97,7 @@ export default function ExpenseModal({
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">
-              Số tiền (VND)
-            </label>
+            <label className="block text-sm font-medium text-slate-700 mb-1">Số tiền (nghìn VND)</label>
             <input
               type="text"
               inputMode="numeric"
@@ -133,9 +110,7 @@ export default function ExpenseModal({
 
           <div>
             <div className="flex items-center justify-between mb-2">
-              <label className="block text-sm font-medium text-slate-700">
-                Chia cho
-              </label>
+              <label className="block text-sm font-medium text-slate-700">Chia cho</label>
               <div className="flex gap-2 text-xs">
                 <button
                   onClick={() => setSharedWith(members)}
@@ -145,11 +120,7 @@ export default function ExpenseModal({
                   Chọn tất cả
                 </button>
                 <span className="text-slate-300">|</span>
-                <button
-                  onClick={() => setSharedWith([])}
-                  className="text-slate-500 hover:underline"
-                  type="button"
-                >
+                <button onClick={() => setSharedWith([])} className="text-slate-500 hover:underline" type="button">
                   Bỏ tất cả
                 </button>
               </div>
@@ -170,9 +141,7 @@ export default function ExpenseModal({
                   >
                     <span
                       className={`w-5 h-5 rounded flex items-center justify-center text-xs ${
-                        checked
-                          ? "bg-indigo-600 text-white"
-                          : "border border-slate-300"
+                        checked ? "bg-indigo-600 text-white" : "border border-slate-300"
                       }`}
                     >
                       {checked && "✓"}
@@ -186,19 +155,17 @@ export default function ExpenseModal({
               <p className="mt-2 text-xs text-slate-500">
                 Mỗi người chia:{" "}
                 <span className="font-semibold">
-                  {(
-                    Number(amount.replace(/\D/g, "")) / sharedWith.length
-                  ).toLocaleString("vi-VN", { maximumFractionDigits: 2 })}{" "}
-                  ₫
+                  {(Number(amount.replace(/\D/g, "")) / sharedWith.length).toLocaleString("vi-VN", {
+                    maximumFractionDigits: 2,
+                  })}
+                  k
                 </span>
               </p>
             )}
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">
-              Ghi chú
-            </label>
+            <label className="block text-sm font-medium text-slate-700 mb-1">Ghi chú</label>
             <input
               type="text"
               value={note}
@@ -208,18 +175,11 @@ export default function ExpenseModal({
             />
           </div>
 
-          {error && (
-            <div className="p-3 bg-red-50 text-red-700 rounded-lg text-sm">
-              {error}
-            </div>
-          )}
+          {error && <div className="p-3 bg-red-50 text-red-700 rounded-lg text-sm">{error}</div>}
         </div>
 
         <div className="p-6 border-t border-slate-100 flex gap-3">
-          <button
-            onClick={onClose}
-            className="flex-1 py-3 bg-slate-100 hover:bg-slate-200 rounded-lg font-medium"
-          >
+          <button onClick={onClose} className="flex-1 py-3 bg-slate-100 hover:bg-slate-200 rounded-lg font-medium">
             Hủy
           </button>
           <button

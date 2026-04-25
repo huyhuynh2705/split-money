@@ -1,9 +1,6 @@
 import type { Balance, Expense, Settlement } from "../types";
 
-export function computeBalances(
-  expenses: Expense[],
-  members: string[]
-): Balance[] {
+export function computeBalances(expenses: Expense[], members: string[]): Balance[] {
   const map = new Map<string, number>();
   for (const m of members) map.set(m, 0);
 
@@ -52,6 +49,7 @@ export function formatVND(n: number): string {
     new Intl.NumberFormat("vi-VN", {
       maximumFractionDigits: 2,
       minimumFractionDigits: 0,
-    }).format(n) + " ₫"
+    }).format(n) + "k"
+    // }).format(n) + " ₫"
   );
 }
