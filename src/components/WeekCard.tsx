@@ -106,7 +106,7 @@ export default function WeekCard({
                       </div>
                       {e.note && <div className="text-sm text-slate-600 mt-1 italic">“{e.note}”</div>}
                     </div>
-                    <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition">
+                    <div className="flex gap-1">
                       <button
                         onClick={() => onEdit(e)}
                         className="text-xs px-2 py-1 text-slate-500 hover:text-indigo-600"
