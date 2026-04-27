@@ -1,7 +1,8 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { AppData, Expense } from "../types";
 import { computeBalances, computeSettlements, formatVND } from "../utils/settlement";
 import { downloadAppData } from "../utils/storage";
+import type { SyncStatus } from "../utils/sync";
 import { compareWeekKeys, getWeekKey } from "../utils/week";
 import BalancesSummary from "./BalancesSummary";
 import ExpenseModal from "./ExpenseModal";
@@ -9,16 +10,108 @@ import MembersModal from "./MembersModal";
 import SettlementsList from "./SettlementsList";
 import WeekCard from "./WeekCard";
 
+type SyncInfo = {
+  groupCode: string | null;
+  etag: string | null;
+  lastSyncedAt: number | null;
+  status: SyncStatus;
+  online: boolean;
+  pendingDirty: boolean;
+};
+
+type ConflictInfo = {
+  serverEtag: string | null;
+  serverData: AppData | null;
+} | null;
+
 type Props = {
   data: AppData;
   setData: (d: AppData) => void;
   onReset: () => void;
+  sync?: SyncInfo;
+  onSyncNow?: () => Promise<void> | void;
+  onPushNow?: () => Promise<void> | void;
+  onLeaveGroup?: () => void;
+  conflict?: ConflictInfo;
+  onResolveConflictPull?: () => void;
+  onResolveConflictOverwrite?: () => Promise<void> | void;
 };
 
-export default function Dashboard({ data, setData, onReset }: Props) {
+function formatTime(ts: number | null): string {
+  if (!ts) return "—";
+  const d = new Date(ts);
+  return d.toLocaleTimeString(undefined, {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
+function syncBadgeText(sync: SyncInfo): {
+  emoji: string;
+  text: string;
+  tone: "good" | "warn" | "bad";
+} {
+  if (!sync.online) {
+    return { emoji: "🔴", text: "offline", tone: "bad" };
+  }
+  switch (sync.status) {
+    case "saving":
+      return { emoji: "⏳", text: "đang lưu...", tone: "warn" };
+    case "loading":
+      return { emoji: "⏳", text: "đang tải...", tone: "warn" };
+    case "conflict":
+      return { emoji: "⚠️", text: "xung đột", tone: "warn" };
+    case "error":
+      return { emoji: "⚠️", text: "lỗi đồng bộ", tone: "warn" };
+    case "offline":
+      return { emoji: "🔴", text: "offline", tone: "bad" };
+    case "synced":
+      return {
+        emoji: "🟢",
+        text: `đồng bộ ${formatTime(sync.lastSyncedAt)}`,
+        tone: "good",
+      };
+    case "idle":
+    default:
+      return sync.pendingDirty
+        ? { emoji: "🟡", text: "chưa đồng bộ", tone: "warn" }
+        : {
+            emoji: "🟢",
+            text: sync.lastSyncedAt ? `đồng bộ ${formatTime(sync.lastSyncedAt)}` : "sẵn sàng",
+            tone: "good",
+          };
+  }
+}
+
+export default function Dashboard({
+  data,
+  setData,
+  onReset,
+  sync,
+  onSyncNow,
+  onPushNow,
+  onLeaveGroup,
+  conflict,
+  onResolveConflictPull,
+  onResolveConflictOverwrite,
+}: Props) {
   const [editing, setEditing] = useState<Expense | null>(null);
   const [adding, setAdding] = useState(false);
   const [showMembers, setShowMembers] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [copyHint, setCopyHint] = useState<string>("");
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!menuOpen) return;
+    const onClick = (e: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setMenuOpen(false);
+      }
+    };
+    window.addEventListener("mousedown", onClick);
+    return () => window.removeEventListener("mousedown", onClick);
+  }, [menuOpen]);
 
   const doneSet = useMemo(() => new Set(data.doneWeeks), [data.doneWeeks]);
 
@@ -64,6 +157,38 @@ export default function Dashboard({ data, setData, onReset }: Props) {
     setShowMembers(false);
   };
 
+  const copyInviteLink = async () => {
+    if (!sync?.groupCode) return;
+    try {
+      const url = new URL(window.location.href);
+      url.searchParams.set("group", sync.groupCode);
+      const text = url.toString();
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(text);
+      } else {
+        const ta = document.createElement("textarea");
+        ta.value = text;
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand("copy");
+        document.body.removeChild(ta);
+      }
+      setCopyHint("Đã sao chép link mời");
+      setTimeout(() => setCopyHint(""), 2000);
+    } catch {
+      setCopyHint("Không sao chép được");
+      setTimeout(() => setCopyHint(""), 2000);
+    }
+  };
+
+  const badge = sync ? syncBadgeText(sync) : null;
+  const badgeToneClass =
+    badge?.tone === "good"
+      ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+      : badge?.tone === "warn"
+        ? "bg-amber-50 text-amber-700 border-amber-200"
+        : "bg-red-50 text-red-700 border-red-200";
+
   return (
     <div className="min-h-full bg-slate-50">
       <header className="bg-white border-b border-slate-200 sticky top-0 z-10">
@@ -72,6 +197,76 @@ export default function Dashboard({ data, setData, onReset }: Props) {
             <span className="text-2xl">💰</span>
             <h1 className="text-xl font-bold text-slate-800">Chia Tiền</h1>
           </div>
+
+          {sync && badge && (
+            <div className="relative" ref={menuRef}>
+              <button
+                onClick={() => setMenuOpen((v) => !v)}
+                className={`px-3 py-2 text-xs sm:text-sm rounded-lg border font-medium flex items-center gap-2 ${badgeToneClass}`}
+                title={sync.groupCode ? `Nhóm: ${sync.groupCode}` : "Chưa tham gia nhóm"}
+              >
+                <span>{badge.emoji}</span>
+                {sync.groupCode ? (
+                  <span className="font-mono max-w-[180px] truncate">{sync.groupCode}</span>
+                ) : (
+                  <span>local</span>
+                )}
+                <span className="hidden sm:inline">· {badge.text}</span>
+              </button>
+
+              {menuOpen && sync.groupCode && (
+                <div className="absolute right-0 mt-2 w-56 bg-white border border-slate-200 rounded-lg shadow-lg py-1 z-20 text-sm">
+                  <button
+                    onClick={async () => {
+                      setMenuOpen(false);
+                      await onSyncNow?.();
+                    }}
+                    className="w-full text-left px-4 py-2 hover:bg-slate-50"
+                  >
+                    🔄 Đồng bộ ngay
+                  </button>
+                  {sync.pendingDirty && (
+                    <button
+                      onClick={async () => {
+                        setMenuOpen(false);
+                        await onPushNow?.();
+                      }}
+                      className="w-full text-left px-4 py-2 hover:bg-slate-50"
+                    >
+                      ⬆ Đẩy thay đổi
+                    </button>
+                  )}
+                  <button
+                    onClick={async () => {
+                      setMenuOpen(false);
+                      await copyInviteLink();
+                    }}
+                    className="w-full text-left px-4 py-2 hover:bg-slate-50"
+                  >
+                    🔗 Sao chép link mời
+                  </button>
+                  <div className="border-t border-slate-100 my-1" />
+                  <button
+                    onClick={() => {
+                      setMenuOpen(false);
+                      if (confirm("Rời nhóm? Dữ liệu trên server vẫn còn, bạn có thể tham gia lại bằng mã nhóm.")) {
+                        onLeaveGroup?.();
+                      }
+                    }}
+                    className="w-full text-left px-4 py-2 hover:bg-slate-50 text-red-600"
+                  >
+                    🚪 Rời nhóm
+                  </button>
+                </div>
+              )}
+              {copyHint && (
+                <div className="absolute right-0 mt-2 px-3 py-1 bg-slate-800 text-white text-xs rounded shadow">
+                  {copyHint}
+                </div>
+              )}
+            </div>
+          )}
+
           <button
             onClick={() => setShowMembers(true)}
             className="px-3 py-2 text-sm bg-slate-100 hover:bg-slate-200 rounded-lg font-medium"
@@ -183,6 +378,37 @@ export default function Dashboard({ data, setData, onReset }: Props) {
           onSave={updateMembers}
           onClose={() => setShowMembers(false)}
         />
+      )}
+
+      {conflict && (
+        <div className="fixed inset-0 z-30 bg-slate-900/60 flex items-center justify-center p-4">
+          <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-6 space-y-4">
+            <h2 className="text-lg font-bold text-slate-800">Xung đột đồng bộ</h2>
+            <p className="text-sm text-slate-600">Người khác trong nhóm vừa cập nhật dữ liệu trước bạn. Bạn muốn:</p>
+            <ul className="text-sm text-slate-600 space-y-1 list-disc list-inside">
+              <li>
+                <strong>Tải bản mới</strong> – dùng dữ liệu trên server, các thay đổi local chưa đẩy sẽ mất.
+              </li>
+              <li>
+                <strong>Ghi đè</strong> – đẩy dữ liệu local lên server, đè bản người khác vừa lưu.
+              </li>
+            </ul>
+            <div className="flex gap-3 pt-2">
+              <button
+                onClick={() => onResolveConflictPull?.()}
+                className="flex-1 py-2.5 bg-slate-100 hover:bg-slate-200 rounded-lg font-medium"
+              >
+                Tải bản mới
+              </button>
+              <button
+                onClick={() => void onResolveConflictOverwrite?.()}
+                className="flex-1 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium"
+              >
+                Ghi đè
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
