@@ -125,6 +125,18 @@ export default function Dashboard({
 
   const totalSpend = useMemo(() => data.expenses.reduce((s, e) => s + e.amount, 0), [data.expenses]);
 
+  const noteSuggestions = useMemo(() => {
+    const counts = new Map<string, number>();
+    for (const e of data.expenses) {
+      const n = e.note.trim();
+      if (!n) continue;
+      counts.set(n, (counts.get(n) ?? 0) + 1);
+    }
+    return Array.from(counts.entries())
+      .sort((a, b) => b[1] - a[1])
+      .map(([n]) => n);
+  }, [data.expenses]);
+
   const weeks = useMemo(() => {
     const map = new Map<string, Expense[]>();
     for (const e of data.expenses) {
@@ -363,6 +375,7 @@ export default function Dashboard({
         <ExpenseModal
           members={data.members}
           initial={editing ?? undefined}
+          noteSuggestions={noteSuggestions}
           onSave={upsertExpense}
           onClose={() => {
             setAdding(false);

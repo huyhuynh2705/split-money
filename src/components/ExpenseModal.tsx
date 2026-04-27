@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { Expense } from "../types";
 import { newId } from "../utils/storage";
 import { formatDateISO } from "../utils/week";
@@ -6,18 +6,26 @@ import { formatDateISO } from "../utils/week";
 type Props = {
   members: string[];
   initial?: Expense;
+  noteSuggestions?: string[];
   onSave: (e: Expense) => void;
   onClose: () => void;
 };
 
-export default function ExpenseModal({ members, initial, onSave, onClose }: Props) {
+export default function ExpenseModal({ members, initial, noteSuggestions = [], onSave, onClose }: Props) {
   const todayISO = formatDateISO(new Date());
   const [date, setDate] = useState(initial?.date ?? todayISO);
   const [payer, setPayer] = useState(initial?.payer ?? members[0] ?? "");
   const [amount, setAmount] = useState<string>(initial?.amount ? String(initial.amount) : "");
   const [sharedWith, setSharedWith] = useState<string[]>(initial?.sharedWith ?? members);
   const [note, setNote] = useState(initial?.note ?? "");
+  const [noteFocused, setNoteFocused] = useState(false);
   const [error, setError] = useState("");
+
+  const filteredSuggestions = useMemo(() => {
+    const q = note.trim().toLowerCase();
+    const list = q ? noteSuggestions.filter((s) => s.toLowerCase().includes(q) && s.toLowerCase() !== q) : noteSuggestions;
+    return list.slice(0, 8);
+  }, [note, noteSuggestions]);
 
   useEffect(() => {
     const handle = (e: KeyboardEvent) => {
@@ -166,13 +174,39 @@ export default function ExpenseModal({ members, initial, onSave, onClose }: Prop
 
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-1">Ghi chú</label>
-            <input
-              type="text"
-              value={note}
-              onChange={(e) => setNote(e.target.value)}
-              placeholder="VD: ăn trưa, đổ xăng..."
-              className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
-            />
+            <div className="relative">
+              <input
+                type="text"
+                value={note}
+                onChange={(e) => setNote(e.target.value)}
+                onFocus={() => setNoteFocused(true)}
+                onBlur={() => setTimeout(() => setNoteFocused(false), 150)}
+                placeholder="VD: ăn trưa, đổ xăng..."
+                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              />
+              {noteFocused && filteredSuggestions.length > 0 && (
+                <ul className="absolute z-10 left-0 right-0 mt-1 bg-white border border-slate-200 rounded-lg shadow-lg max-h-48 overflow-y-auto">
+                  {filteredSuggestions.map((s) => (
+                    <li key={s}>
+                      <button
+                        type="button"
+                        onMouseDown={(e) => e.preventDefault()}
+                        onClick={() => {
+                          setNote(s);
+                          setNoteFocused(false);
+                        }}
+                        className="w-full text-left px-3 py-2 text-sm text-slate-700 hover:bg-indigo-50"
+                      >
+                        {s}
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+            {noteSuggestions.length > 0 && !note && !noteFocused && (
+              <p className="mt-1 text-xs text-slate-400">Nhấn vào ô để xem gợi ý ghi chú đã nhập trước đây</p>
+            )}
           </div>
 
           {error && <div className="p-3 bg-red-50 text-red-700 rounded-lg text-sm">{error}</div>}

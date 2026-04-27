@@ -82,7 +82,7 @@ export default function WeekCard({
             }`}
             title={done ? "Đánh dấu là chưa thanh toán xong" : "Đánh dấu tuần này đã thanh toán xong"}
           >
-            {done ? "↺ Mở lại" : "✓ Đã xong"}
+            {done ? "↺ Mở lại" : "✓ Thanh toán xong"}
           </button>
         </div>
       </div>
