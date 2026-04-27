@@ -3,8 +3,7 @@ import Dashboard from "./components/Dashboard";
 import WelcomeScreen from "./components/WelcomeScreen";
 import { useGroupSync } from "./hooks/useGroupSync";
 import type { AppData } from "./types";
-import { clearAppDataCache, loadCachedAppData, saveAppDataToCache } from "./utils/storage";
-import { clearSyncSession, loadSyncSession, normaliseGroupCode } from "./utils/sync";
+import { normaliseGroupCode } from "./utils/sync";
 
 function readGroupFromURL(): string | null {
   if (typeof window === "undefined") return null;
@@ -18,13 +17,17 @@ function readGroupFromURL(): string | null {
   }
 }
 
-function stripGroupFromURL() {
+function writeGroupToURL(code: string | null) {
   try {
     const url = new URL(window.location.href);
-    if (url.searchParams.has("group")) {
+    if (code) {
+      if (url.searchParams.get("group") === code) return;
+      url.searchParams.set("group", code);
+    } else {
+      if (!url.searchParams.has("group")) return;
       url.searchParams.delete("group");
-      window.history.replaceState({}, "", url.toString());
     }
+    window.history.replaceState({}, "", url.toString());
   } catch {
     // ignore
   }
@@ -32,20 +35,12 @@ function stripGroupFromURL() {
 
 export default function App() {
   const [data, setData] = useState<AppData | null>(null);
-  const cachedDataRef = useRef<AppData | null>(loadCachedAppData());
   const initialInviteRef = useRef<string | null>(readGroupFromURL());
-  const initialSessionRef = useRef(loadSyncSession());
 
   const [bootstrapping, setBootstrapping] = useState<boolean>(
-    Boolean(initialInviteRef.current || initialSessionRef.current),
+    Boolean(initialInviteRef.current),
   );
   const [welcomeError, setWelcomeError] = useState<string | null>(null);
-  const [welcomeMode, setWelcomeMode] = useState<"menu" | "join" | "create">(
-    "menu",
-  );
-  const [inviteCode, setInviteCode] = useState<string | null>(
-    initialInviteRef.current,
-  );
 
   const applyRemoteData = useCallback((d: AppData) => {
     setData(d);
@@ -53,55 +48,38 @@ export default function App() {
 
   const sync = useGroupSync({ data, applyRemoteData });
 
-  // Bootstrap: invite link wins over saved session.
+  // Bootstrap from URL group code (only source of persistence now).
   useEffect(() => {
     const invite = initialInviteRef.current;
-    const session = initialSessionRef.current;
-    const targetCode = invite ?? session?.groupCode ?? null;
-
-    if (!targetCode) {
+    if (!invite) {
       setBootstrapping(false);
       return;
     }
 
     let cancelled = false;
     (async () => {
-      const result = await sync.joinGroup(targetCode);
+      const result = await sync.joinGroup(invite);
       if (cancelled) return;
 
       if (result.ok) {
-        // Successful join → strip invite query so refresh stays in this group.
-        if (invite) {
-          stripGroupFromURL();
-          setInviteCode(null);
-        }
         setBootstrapping(false);
         return;
       }
 
-      // Failed join: surface in Welcome.
+      // Failed: strip URL, show notice on Welcome.
+      writeGroupToURL(null);
       if (result.reason === "not_found") {
-        if (invite) {
-          // Invite to a non-existent group: show join form prefilled with error.
-          setInviteCode(invite);
-          setWelcomeMode("join");
-          setWelcomeError(
-            "Nhóm với mật khẩu này chưa tồn tại. Nhờ người tạo kiểm tra lại, hoặc đổi sang 'Tạo nhóm mới' nếu bạn muốn tự khởi tạo.",
-          );
-        } else {
-          // Session pointed to deleted group: clear session.
-          clearSyncSession();
-        }
+        setWelcomeError(`Nhóm "${invite}" không tồn tại.`);
       } else if (result.reason === "network") {
         setWelcomeError("Không kết nối được server. Kiểm tra mạng và thử lại.");
-        if (invite) setInviteCode(invite);
+      } else if (result.reason === "invalid") {
+        setWelcomeError("Mã nhóm trên URL không hợp lệ.");
       } else {
         setWelcomeError(
           result.message
             ? `Lỗi server: ${result.message}`
             : "Server lỗi, thử lại sau.",
         );
-        if (!invite) clearSyncSession();
       }
       setBootstrapping(false);
     })();
@@ -111,29 +89,15 @@ export default function App() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Persist data to local cache whenever it changes (for offline reload).
+  // Mirror group code to URL whenever it changes.
   useEffect(() => {
-    if (data) saveAppDataToCache(data);
-  }, [data]);
-
-  // Once user has joined a group, clear bootstrapping spinner & invite hint.
-  useEffect(() => {
-    if (sync.groupCode) {
-      setBootstrapping(false);
-      setWelcomeError(null);
-      stripGroupFromURL();
-      setInviteCode(null);
-    }
+    writeGroupToURL(sync.groupCode ?? null);
   }, [sync.groupCode]);
 
   const reset = useCallback(() => {
-    clearAppDataCache();
-    cachedDataRef.current = null;
     sync.leaveGroup();
     setData(null);
-    setWelcomeMode("menu");
     setWelcomeError(null);
-    setInviteCode(null);
   }, [sync]);
 
   const headerInfo = useMemo(
@@ -151,12 +115,14 @@ export default function App() {
   if (bootstrapping) {
     return (
       <div className="min-h-full flex items-center justify-center p-6 bg-linear-to-br from-slate-50 to-slate-200">
-        <div className="text-slate-500">Đang tải dữ liệu nhóm...</div>
+        <div className="flex flex-col items-center gap-3 text-slate-500">
+          <div className="w-8 h-8 border-4 border-slate-300 border-t-indigo-600 rounded-full animate-spin" />
+          <div>Đang tải dữ liệu nhóm...</div>
+        </div>
       </div>
     );
   }
 
-  // Single dashboard mode: must have a group AND data.
   if (sync.groupCode && data) {
     return (
       <Dashboard
@@ -176,10 +142,7 @@ export default function App() {
 
   return (
     <WelcomeScreen
-      inviteCode={inviteCode}
-      initialMode={welcomeMode}
       initialError={welcomeError}
-      cachedData={cachedDataRef.current}
       onJoinGroup={sync.joinGroup}
       onCreateGroup={sync.createGroup}
     />

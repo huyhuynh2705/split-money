@@ -119,31 +119,3 @@ export function downloadAppData(data: AppData, filename = "split-money.json") {
 export function newId() {
   return uid();
 }
-
-const CACHE_KEY = "split-money:data";
-
-export function loadCachedAppData(): AppData | null {
-  try {
-    const raw = localStorage.getItem(CACHE_KEY);
-    if (!raw) return null;
-    return parseAppData(raw);
-  } catch {
-    return null;
-  }
-}
-
-export function saveAppDataToCache(data: AppData): void {
-  try {
-    localStorage.setItem(CACHE_KEY, JSON.stringify(data));
-  } catch {
-    // ignore quota / disabled storage
-  }
-}
-
-export function clearAppDataCache(): void {
-  try {
-    localStorage.removeItem(CACHE_KEY);
-  } catch {
-    // ignore
-  }
-}

@@ -1,11 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { AppData } from "../types";
 import {
-  clearSyncSession,
   fetchGroup,
-  loadSyncSession,
   pushWithRetry,
-  saveSyncSession,
   type SyncSession,
   type SyncStatus,
 } from "../utils/sync";
@@ -64,9 +61,7 @@ export function useGroupSync({
   data,
   applyRemoteData,
 }: UseGroupSyncArgs): GroupSync {
-  const [session, setSession] = useState<SyncSession | null>(() =>
-    loadSyncSession(),
-  );
+  const [session, setSession] = useState<SyncSession | null>(null);
   const [status, setStatus] = useState<SyncStatus>("idle");
   const [conflict, setConflict] = useState<ConflictState | null>(null);
   const [online, setOnline] = useState(() =>
@@ -148,15 +143,10 @@ export function useGroupSync({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [session?.groupCode]);
 
-  const updateSession = useCallback(
-    (next: SyncSession | null) => {
-      sessionRef.current = next;
-      setSession(next);
-      if (next) saveSyncSession(next);
-      else clearSyncSession();
-    },
-    [],
-  );
+  const updateSession = useCallback((next: SyncSession | null) => {
+    sessionRef.current = next;
+    setSession(next);
+  }, []);
 
   const schedulePush = useCallback(() => {
     if (pushTimerRef.current) clearTimeout(pushTimerRef.current);

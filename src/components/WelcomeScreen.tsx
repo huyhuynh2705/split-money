@@ -5,10 +5,7 @@ import { parseAppData } from "../utils/storage";
 import { normaliseGroupCode } from "../utils/sync";
 
 type Props = {
-  inviteCode?: string | null;
-  initialMode?: Mode;
   initialError?: string | null;
-  cachedData?: AppData | null;
   onJoinGroup: (code: string) => Promise<JoinResult>;
   onCreateGroup: (code: string, seed: AppData, createToken: string) => Promise<CreateResult>;
 };
@@ -70,39 +67,26 @@ function buildGroupCode(members: string[], suffix: string): string {
 }
 
 export default function WelcomeScreen({
-  inviteCode,
-  initialMode,
   initialError,
-  cachedData,
   onJoinGroup,
   onCreateGroup,
 }: Props) {
   const fileRef = useRef<HTMLInputElement>(null);
   const [error, setError] = useState<string>(initialError ?? "");
-  const [mode, setMode] = useState<Mode>(initialMode ?? (inviteCode ? "join" : "menu"));
+  const [mode, setMode] = useState<Mode>("menu");
   const [createStep, setCreateStep] = useState<CreateStep>("password");
 
-  const [members, setMembers] = useState<string[]>(
-    cachedData && cachedData.members.length > 0 ? cachedData.members : DEFAULT_MEMBERS,
-  );
+  const [members, setMembers] = useState<string[]>(DEFAULT_MEMBERS);
   const [memberDraft, setMemberDraft] = useState("");
 
   const [createToken, setCreateToken] = useState<string>("");
   const [seedFromFile, setSeedFromFile] = useState<AppData | null>(null);
-  const [seedFromCache, setSeedFromCache] = useState<boolean>(Boolean(cachedData && cachedData.expenses.length > 0));
   const [codeSuffix, setCodeSuffix] = useState<string>(() => randomSuffix());
 
-  const [joinGroupCode, setJoinGroupCode] = useState<string>(inviteCode ?? "");
+  const [joinGroupCode, setJoinGroupCode] = useState<string>("");
   const [busy, setBusy] = useState(false);
 
   const generatedCode = useMemo(() => buildGroupCode(members, codeSuffix), [members, codeSuffix]);
-
-  useEffect(() => {
-    if (inviteCode) {
-      setMode("join");
-      setJoinGroupCode(inviteCode);
-    }
-  }, [inviteCode]);
 
   useEffect(() => {
     if (initialError) setError(initialError);
@@ -122,7 +106,6 @@ export default function WelcomeScreen({
       const data = parseAppData(text);
       setSeedFromFile(data);
       if (data.members.length > 0) setMembers(data.members);
-      setSeedFromCache(false);
       setCodeSuffix(randomSuffix());
     } catch (err) {
       setError(err instanceof Error ? err.message : "Không đọc được file");
@@ -146,12 +129,6 @@ export default function WelcomeScreen({
       return {
         ...seedFromFile,
         members: members.length > 0 ? members : seedFromFile.members,
-      };
-    }
-    if (seedFromCache && cachedData) {
-      return {
-        ...cachedData,
-        members: members.length > 0 ? members : cachedData.members,
       };
     }
     return { members, expenses: [], doneWeeks: [] };
@@ -374,17 +351,6 @@ export default function WelcomeScreen({
                     <button
                       onClick={() => setSeedFromFile(null)}
                       className="ml-2 text-emerald-500 hover:text-emerald-800"
-                    >
-                      ×
-                    </button>
-                  </span>
-                )}
-                {!seedFromFile && seedFromCache && cachedData && (
-                  <span className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-full px-3 py-1">
-                    Dùng dữ liệu sẵn có ({cachedData.expenses.length} chi tiêu)
-                    <button
-                      onClick={() => setSeedFromCache(false)}
-                      className="ml-2 text-amber-500 hover:text-amber-800"
                     >
                       ×
                     </button>

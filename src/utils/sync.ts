@@ -2,7 +2,6 @@ import type { AppData } from "../types";
 import { parseAppData } from "./storage";
 
 export const GROUP_CODE_RE = /^[a-z0-9_-]{3,64}$/;
-const SYNC_KEY = "split-money:sync";
 const ENDPOINT = "/.netlify/functions/data";
 
 export type SyncStatus =
@@ -24,46 +23,6 @@ export function normaliseGroupCode(raw: string): string | null {
   const code = raw.trim().toLowerCase();
   if (!GROUP_CODE_RE.test(code)) return null;
   return code;
-}
-
-export function loadSyncSession(): SyncSession | null {
-  try {
-    const raw = localStorage.getItem(SYNC_KEY);
-    if (!raw) return null;
-    const parsed = JSON.parse(raw);
-    if (
-      parsed &&
-      typeof parsed === "object" &&
-      typeof parsed.groupCode === "string" &&
-      GROUP_CODE_RE.test(parsed.groupCode)
-    ) {
-      return {
-        groupCode: parsed.groupCode,
-        etag: typeof parsed.etag === "string" ? parsed.etag : null,
-        lastSyncedAt:
-          typeof parsed.lastSyncedAt === "number" ? parsed.lastSyncedAt : null,
-      };
-    }
-    return null;
-  } catch {
-    return null;
-  }
-}
-
-export function saveSyncSession(session: SyncSession): void {
-  try {
-    localStorage.setItem(SYNC_KEY, JSON.stringify(session));
-  } catch {
-    // ignore
-  }
-}
-
-export function clearSyncSession(): void {
-  try {
-    localStorage.removeItem(SYNC_KEY);
-  } catch {
-    // ignore
-  }
 }
 
 export type FetchResult =
