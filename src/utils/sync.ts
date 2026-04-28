@@ -26,20 +26,29 @@ export function normaliseGroupCode(raw: string): string | null {
 }
 
 export type FetchResult =
-  | { ok: true; data: AppData | null; etag: string | null }
+  | { ok: true; notModified: true; etag: string }
+  | { ok: true; notModified?: false; data: AppData | null; etag: string | null }
   | { ok: false; reason: "network" | "invalid" | "server"; message?: string };
 
-export async function fetchGroup(code: string): Promise<FetchResult> {
+export async function fetchGroup(
+  code: string,
+  opts: { ifNoneMatch?: string | null } = {},
+): Promise<FetchResult> {
   const safe = normaliseGroupCode(code);
   if (!safe) return { ok: false, reason: "invalid" };
+  const headers: Record<string, string> = { Accept: "application/json" };
+  if (opts.ifNoneMatch) headers["If-None-Match"] = opts.ifNoneMatch;
   let res: Response;
   try {
     res = await fetch(`${ENDPOINT}?group=${encodeURIComponent(safe)}`, {
       method: "GET",
-      headers: { Accept: "application/json" },
+      headers,
     });
   } catch {
     return { ok: false, reason: "network" };
+  }
+  if (res.status === 304 && opts.ifNoneMatch) {
+    return { ok: true, notModified: true, etag: opts.ifNoneMatch };
   }
   if (!res.ok) {
     return {

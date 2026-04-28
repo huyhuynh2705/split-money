@@ -37,9 +37,7 @@ export default function App() {
   const [data, setData] = useState<AppData | null>(null);
   const initialInviteRef = useRef<string | null>(readGroupFromURL());
 
-  const [bootstrapping, setBootstrapping] = useState<boolean>(
-    Boolean(initialInviteRef.current),
-  );
+  const [bootstrapping, setBootstrapping] = useState<boolean>(Boolean(initialInviteRef.current));
   const [welcomeError, setWelcomeError] = useState<string | null>(null);
 
   const applyRemoteData = useCallback((d: AppData) => {
@@ -75,11 +73,7 @@ export default function App() {
       } else if (result.reason === "invalid") {
         setWelcomeError("Mã nhóm trên URL không hợp lệ.");
       } else {
-        setWelcomeError(
-          result.message
-            ? `Lỗi server: ${result.message}`
-            : "Server lỗi, thử lại sau.",
-        );
+        setWelcomeError(result.message ? `Lỗi server: ${result.message}` : "Server lỗi, thử lại sau.");
       }
       setBootstrapping(false);
     })();
@@ -123,6 +117,26 @@ export default function App() {
     );
   }
 
+  // Local dev:
+  return (
+    <Dashboard
+      data={{
+        members: [],
+        expenses: [],
+        doneWeeks: [],
+      }}
+      setData={setData}
+      onReset={reset}
+      sync={headerInfo}
+      onSyncNow={sync.pullNow}
+      onPushNow={sync.pushNow}
+      onLeaveGroup={() => sync.leaveGroup()}
+      conflict={sync.conflict}
+      onResolveConflictPull={sync.resolveConflictPull}
+      onResolveConflictOverwrite={sync.resolveConflictOverwrite}
+    />
+  );
+
   if (sync.groupCode && data) {
     return (
       <Dashboard
@@ -140,11 +154,5 @@ export default function App() {
     );
   }
 
-  return (
-    <WelcomeScreen
-      initialError={welcomeError}
-      onJoinGroup={sync.joinGroup}
-      onCreateGroup={sync.createGroup}
-    />
-  );
+  return <WelcomeScreen initialError={welcomeError} onJoinGroup={sync.joinGroup} onCreateGroup={sync.createGroup} />;
 }

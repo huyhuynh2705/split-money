@@ -7,7 +7,7 @@ const DATE_TOKEN_RE = /^\d{4}-\d{2}-\d{2}$/;
 const CORS_HEADERS: Record<string, string> = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Methods": "GET, PUT, DELETE, OPTIONS",
-  "Access-Control-Allow-Headers": "Content-Type, If-Match, X-Create-Token",
+  "Access-Control-Allow-Headers": "Content-Type, If-Match, If-None-Match, X-Create-Token",
   "Access-Control-Expose-Headers": "ETag",
 };
 
@@ -76,6 +76,13 @@ export default async (req: Request): Promise<Response> => {
         return json({ data: null, etag: null }, { status: 200 });
       }
       const etag = hashEtag(text);
+      const ifNoneMatch = req.headers.get("If-None-Match");
+      if (ifNoneMatch && ifNoneMatch === etag) {
+        return new Response(null, {
+          status: 304,
+          headers: { ETag: etag, ...CORS_HEADERS },
+        });
+      }
       return new Response(JSON.stringify({ data: JSON.parse(text), etag }), {
         status: 200,
         headers: {

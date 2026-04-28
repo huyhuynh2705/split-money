@@ -7,7 +7,7 @@ import {
   type SyncStatus,
 } from "../utils/sync";
 
-const POLL_INTERVAL_MS = 15_000;
+const POLL_INTERVAL_MS = 5_000;
 const PUSH_DEBOUNCE_MS = 800;
 
 export type ConflictState = {
@@ -68,6 +68,9 @@ export function useGroupSync({
     typeof navigator === "undefined" ? true : navigator.onLine,
   );
   const [pendingDirty, setPendingDirty] = useState(false);
+  const [isVisible, setIsVisible] = useState(() =>
+    typeof document === "undefined" ? true : document.visibilityState === "visible",
+  );
 
   const dataRef = useRef<AppData | null>(data);
   const sessionRef = useRef<SyncSession | null>(session);
@@ -113,33 +116,36 @@ export function useGroupSync({
     };
   }, []);
 
-  // Polling.
+  // Track tab visibility — pause polling when hidden.
+  useEffect(() => {
+    const onVisibilityChange = () => {
+      setIsVisible(document.visibilityState === "visible");
+    };
+    document.addEventListener("visibilitychange", onVisibilityChange);
+    return () => document.removeEventListener("visibilitychange", onVisibilityChange);
+  }, []);
+
+  // Polling — only when there is a session and tab is visible.
   useEffect(() => {
     if (!session) return;
+    if (!isVisible) return;
+    // Pull immediately when becoming visible (or session starts).
+    void doPull(true);
     const id = window.setInterval(() => {
-      void doPull(false);
+      void doPull(true);
     }, POLL_INTERVAL_MS);
     return () => window.clearInterval(id);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [session?.groupCode]);
+  }, [session?.groupCode, isVisible]);
 
-  // Force pull on tab focus / visibility change.
+  // Force pull on window focus (covers desktop alt-tab without visibility change).
   useEffect(() => {
     if (!session) return;
-    const onVisible = () => {
-      if (document.visibilityState === "visible") {
-        void doPull(false);
-      }
-    };
     const onFocus = () => {
-      void doPull(false);
+      void doPull(true);
     };
-    document.addEventListener("visibilitychange", onVisible);
     window.addEventListener("focus", onFocus);
-    return () => {
-      document.removeEventListener("visibilitychange", onVisible);
-      window.removeEventListener("focus", onFocus);
-    };
+    return () => window.removeEventListener("focus", onFocus);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [session?.groupCode]);
 
@@ -220,10 +226,22 @@ export function useGroupSync({
       const sess = sessionRef.current;
       if (!sess) return;
       if (!silent) setStatus("loading");
-      const result = await fetchGroup(sess.groupCode);
+      const result = await fetchGroup(sess.groupCode, {
+        ifNoneMatch: sess.etag,
+      });
       if (!result.ok) {
         if (result.reason === "network") setStatus("offline");
         else if (!silent) setStatus("error");
+        return;
+      }
+      if (result.notModified) {
+        // 304 — server confirmed no change. Just bump lastSyncedAt.
+        updateSession({
+          groupCode: sess.groupCode,
+          etag: sess.etag,
+          lastSyncedAt: Date.now(),
+        });
+        setStatus("synced");
         return;
       }
       if (result.data == null) {
