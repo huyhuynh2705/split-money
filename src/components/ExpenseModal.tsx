@@ -174,36 +174,33 @@ export default function ExpenseModal({ members, initial, noteSuggestions = [], o
 
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-1">Ghi chú</label>
-            <div className="relative">
-              <input
-                type="text"
-                value={note}
-                onChange={(e) => setNote(e.target.value)}
-                onFocus={() => setNoteFocused(true)}
-                onBlur={() => setTimeout(() => setNoteFocused(false), 150)}
-                placeholder="VD: ăn trưa, đổ xăng..."
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              />
-              {noteFocused && filteredSuggestions.length > 0 && (
-                <ul className="absolute z-10 left-0 right-0 mt-1 bg-white border border-slate-200 rounded-lg shadow-lg max-h-48 overflow-y-auto">
-                  {filteredSuggestions.map((s) => (
-                    <li key={s}>
-                      <button
-                        type="button"
-                        onMouseDown={(e) => e.preventDefault()}
-                        onClick={() => {
-                          setNote(s);
-                          setNoteFocused(false);
-                        }}
-                        className="w-full text-left px-3 py-2 text-sm text-slate-700 hover:bg-indigo-50"
-                      >
-                        {s}
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </div>
+            {noteFocused && filteredSuggestions.length > 0 && (
+              <div className="mb-2 -mx-1 px-1 flex gap-2 overflow-x-auto pb-1">
+                {filteredSuggestions.map((s) => (
+                  <button
+                    key={s}
+                    type="button"
+                    onMouseDown={(e) => e.preventDefault()}
+                    onClick={() => {
+                      setNote(s);
+                      setNoteFocused(false);
+                    }}
+                    className="shrink-0 px-3 py-1.5 text-xs bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 rounded-full whitespace-nowrap"
+                  >
+                    {s}
+                  </button>
+                ))}
+              </div>
+            )}
+            <input
+              type="text"
+              value={note}
+              onChange={(e) => setNote(e.target.value)}
+              onFocus={() => setNoteFocused(true)}
+              onBlur={() => setTimeout(() => setNoteFocused(false), 150)}
+              placeholder="VD: ăn trưa, đổ xăng..."
+              className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            />
             {noteSuggestions.length > 0 && !note && !noteFocused && (
               <p className="mt-1 text-xs text-slate-400">Nhấn vào ô để xem gợi ý ghi chú đã nhập trước đây</p>
             )}

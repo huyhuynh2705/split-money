@@ -25,11 +25,25 @@ export function normaliseGroupCode(raw: string): string | null {
   return code;
 }
 
-export type FetchResult =
-  | { ok: true; notModified: true; etag: string }
-  | { ok: true; notModified?: false; data: AppData | null; etag: string | null }
-  | { ok: false; reason: "network" | "invalid" | "server"; message?: string };
+export type FetchOkData = {
+  ok: true;
+  notModified?: false;
+  data: AppData | null;
+  etag: string | null;
+};
+export type FetchNotModified = { ok: true; notModified: true; etag: string };
+export type FetchErr = {
+  ok: false;
+  reason: "network" | "invalid" | "server";
+  message?: string;
+};
+export type FetchResult = FetchOkData | FetchNotModified | FetchErr;
 
+export async function fetchGroup(code: string): Promise<FetchOkData | FetchErr>;
+export async function fetchGroup(
+  code: string,
+  opts: { ifNoneMatch?: string | null },
+): Promise<FetchResult>;
 export async function fetchGroup(
   code: string,
   opts: { ifNoneMatch?: string | null } = {},

@@ -99,8 +99,10 @@ export default function Dashboard({
   const [adding, setAdding] = useState(false);
   const [showMembers, setShowMembers] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [copyHint, setCopyHint] = useState<string>("");
   const menuRef = useRef<HTMLDivElement>(null);
+  const mobileMenuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!menuOpen) return;
@@ -112,6 +114,17 @@ export default function Dashboard({
     window.addEventListener("mousedown", onClick);
     return () => window.removeEventListener("mousedown", onClick);
   }, [menuOpen]);
+
+  useEffect(() => {
+    if (!mobileMenuOpen) return;
+    const onClick = (e: MouseEvent) => {
+      if (mobileMenuRef.current && !mobileMenuRef.current.contains(e.target as Node)) {
+        setMobileMenuOpen(false);
+      }
+    };
+    window.addEventListener("mousedown", onClick);
+    return () => window.removeEventListener("mousedown", onClick);
+  }, [mobileMenuOpen]);
 
   const doneSet = useMemo(() => new Set(data.doneWeeks), [data.doneWeeks]);
 
@@ -219,7 +232,7 @@ export default function Dashboard({
               >
                 <span>{badge.emoji}</span>
                 {sync.groupCode ? (
-                  <span className="font-mono max-w-[180px] truncate">{sync.groupCode}</span>
+                  <span className="font-mono max-w-20 lg:max-w-45 truncate">{sync.groupCode}</span>
                 ) : (
                   <span>local</span>
                 )}
@@ -279,36 +292,110 @@ export default function Dashboard({
             </div>
           )}
 
-          <button
-            onClick={() => setShowMembers(true)}
-            className="px-3 py-2 text-sm bg-slate-100 hover:bg-slate-200 rounded-lg font-medium"
-          >
-            👥 Thành viên ({data.members.length})
-          </button>
-          <button
-            onClick={() => downloadAppData(data)}
-            className="px-3 py-2 text-sm bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-medium"
-          >
-            ⬇ Tải dữ liệu về máy
-          </button>
-          <button
-            onClick={() => {
-              if (
-                confirm(
-                  "Quay lại màn hình bắt đầu? Dữ liệu lưu trong trình duyệt sẽ bị xóa, hãy tải JSON về trước nếu cần.",
-                )
-              ) {
-                onReset();
-              }
-            }}
-            className="px-3 py-2 text-sm text-slate-500 hover:text-slate-800"
-          >
-            ⟲ Bắt đầu lại
-          </button>
+          <div className="hidden sm:flex items-center gap-3">
+            <button
+              onClick={() => setShowMembers(true)}
+              className="px-3 py-2 text-sm bg-slate-100 hover:bg-slate-200 rounded-lg font-medium"
+            >
+              👥 Thành viên ({data.members.length})
+            </button>
+            <button
+              onClick={() => downloadAppData(data)}
+              className="px-3 py-2 text-sm bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-medium"
+            >
+              ⬇ Tải dữ liệu về máy
+            </button>
+            <button
+              onClick={() => {
+                if (
+                  confirm(
+                    "Quay lại màn hình bắt đầu? Dữ liệu lưu trong trình duyệt sẽ bị xóa, hãy tải JSON về trước nếu cần.",
+                  )
+                ) {
+                  onReset();
+                }
+              }}
+              className="px-3 py-2 text-sm text-slate-500 hover:text-slate-800"
+            >
+              ⟲ Bắt đầu lại
+            </button>
+          </div>
+
+          <div className="sm:hidden relative" ref={mobileMenuRef}>
+            <button
+              onClick={() => setMobileMenuOpen((v) => !v)}
+              className="p-2 rounded-lg hover:bg-slate-100 text-slate-700"
+              aria-label="Mở menu"
+              aria-expanded={mobileMenuOpen}
+            >
+              <svg
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <line x1="3" y1="6" x2="21" y2="6" />
+                <line x1="3" y1="12" x2="21" y2="12" />
+                <line x1="3" y1="18" x2="21" y2="18" />
+              </svg>
+            </button>
+
+            {mobileMenuOpen && (
+              <div className="absolute right-0 mt-2 w-56 bg-white border border-slate-200 rounded-lg shadow-lg py-1 z-20 text-sm">
+                <button
+                  onClick={() => {
+                    setMobileMenuOpen(false);
+                    setShowMembers(true);
+                  }}
+                  className="w-full text-left px-4 py-2 hover:bg-slate-50"
+                >
+                  👥 Thành viên ({data.members.length})
+                </button>
+                <button
+                  onClick={() => {
+                    setMobileMenuOpen(false);
+                    downloadAppData(data);
+                  }}
+                  className="w-full text-left px-4 py-2 hover:bg-slate-50 text-emerald-700"
+                >
+                  ⬇ Tải dữ liệu về máy
+                </button>
+                <div className="border-t border-slate-100 my-1" />
+                <button
+                  onClick={() => {
+                    setMobileMenuOpen(false);
+                    if (
+                      confirm(
+                        "Quay lại màn hình bắt đầu? Dữ liệu lưu trong trình duyệt sẽ bị xóa, hãy tải JSON về trước nếu cần.",
+                      )
+                    ) {
+                      onReset();
+                    }
+                  }}
+                  className="w-full text-left px-4 py-2 hover:bg-slate-50 text-slate-600"
+                >
+                  ⟲ Bắt đầu lại
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       </header>
 
       <main className="max-w-5xl mx-auto p-4 space-y-6">
+        <section>
+          <button
+            onClick={() => setAdding(true)}
+            className="w-full py-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-semibold shadow-sm transition"
+          >
+            ➕ Thêm chi tiêu mới
+          </button>
+        </section>
+
         <section className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <div className="bg-white border border-slate-200 rounded-xl p-4">
             <div className="text-xs uppercase text-slate-500 tracking-wide">Tổng chi</div>
@@ -322,15 +409,6 @@ export default function Dashboard({
             <div className="text-xs uppercase text-slate-500 tracking-wide">Số tuần</div>
             <div className="text-2xl font-bold text-slate-800 mt-1">{weeks.length}</div>
           </div>
-        </section>
-
-        <section>
-          <button
-            onClick={() => setAdding(true)}
-            className="w-full py-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-semibold shadow-sm transition"
-          >
-            ➕ Thêm chi tiêu mới
-          </button>
         </section>
 
         <section>

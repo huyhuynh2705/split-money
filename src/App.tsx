@@ -117,26 +117,6 @@ export default function App() {
     );
   }
 
-  // Local dev:
-  return (
-    <Dashboard
-      data={{
-        members: [],
-        expenses: [],
-        doneWeeks: [],
-      }}
-      setData={setData}
-      onReset={reset}
-      sync={headerInfo}
-      onSyncNow={sync.pullNow}
-      onPushNow={sync.pushNow}
-      onLeaveGroup={() => sync.leaveGroup()}
-      conflict={sync.conflict}
-      onResolveConflictPull={sync.resolveConflictPull}
-      onResolveConflictOverwrite={sync.resolveConflictOverwrite}
-    />
-  );
-
   if (sync.groupCode && data) {
     return (
       <Dashboard
