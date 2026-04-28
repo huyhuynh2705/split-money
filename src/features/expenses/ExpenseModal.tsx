@@ -24,13 +24,12 @@ export default function ExpenseModal({
 }: Props) {
   const todayISO = formatDateISO(new Date());
   const defaultPayer =
-    initial?.payer ?? (currentUser && members.includes(currentUser) ? currentUser : members[0] ?? "");
+    initial?.payer ?? (currentUser && members.includes(currentUser) ? currentUser : (members[0] ?? ""));
   const [date, setDate] = useState(initial?.date ?? todayISO);
   const [payer, setPayer] = useState(defaultPayer);
   const [amount, setAmount] = useState<string>(initial?.amount ? String(initial.amount) : "");
   const [sharedWith, setSharedWith] = useState<string[]>(initial?.sharedWith ?? members);
   const [note, setNote] = useState(initial?.note ?? "");
-  const [noteFocused, setNoteFocused] = useState(false);
   const [error, setError] = useState("");
 
   const filteredSuggestions = useMemo(() => {
@@ -205,7 +204,7 @@ export default function ExpenseModal({
 
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-1">Ghi chú</label>
-            {noteFocused && filteredSuggestions.length > 0 && (
+            {filteredSuggestions.length > 0 && (
               <div className="mb-2 -mx-1 px-1 flex gap-2 overflow-x-auto pb-1">
                 {filteredSuggestions.map((s) => (
                   <button
@@ -214,7 +213,6 @@ export default function ExpenseModal({
                     onMouseDown={(e) => e.preventDefault()}
                     onClick={() => {
                       setNote(s);
-                      setNoteFocused(false);
                     }}
                     className="shrink-0 px-3 py-1.5 text-xs bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 rounded-full whitespace-nowrap"
                   >
@@ -227,12 +225,10 @@ export default function ExpenseModal({
               type="text"
               value={note}
               onChange={(e) => setNote(e.target.value)}
-              onFocus={() => setNoteFocused(true)}
-              onBlur={() => setTimeout(() => setNoteFocused(false), 150)}
               placeholder="VD: ăn trưa, đổ xăng..."
               className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
             />
-            {noteSuggestions.length > 0 && !note && !noteFocused && (
+            {noteSuggestions.length > 0 && !note && (
               <p className="mt-1 text-xs text-slate-400">Nhấn vào ô để xem gợi ý ghi chú đã nhập trước đây</p>
             )}
           </div>

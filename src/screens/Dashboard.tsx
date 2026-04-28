@@ -32,7 +32,6 @@ type Props = {
   currentUser?: string | null;
   onSyncNow?: () => Promise<void> | void;
   onPushNow?: () => Promise<void> | void;
-  onLeaveGroup?: () => void;
   conflict?: ConflictInfo;
   onResolveConflictPull?: () => void;
   onResolveConflictOverwrite?: () => Promise<void> | void;
@@ -57,28 +56,28 @@ function syncBadgeText(sync: SyncInfo): {
   }
   switch (sync.status) {
     case "saving":
-      return { emoji: "⏳", text: "đang lưu...", tone: "warn" };
+      return { emoji: "⏳", text: "Đang lưu...", tone: "warn" };
     case "loading":
-      return { emoji: "⏳", text: "đang tải...", tone: "warn" };
+      return { emoji: "⏳", text: "Đang tải...", tone: "warn" };
     case "conflict":
-      return { emoji: "⚠️", text: "xung đột", tone: "warn" };
+      return { emoji: "⚠️", text: "Xung đột", tone: "warn" };
     case "error":
-      return { emoji: "⚠️", text: "lỗi đồng bộ", tone: "warn" };
+      return { emoji: "⚠️", text: "Lỗi đồng bộ", tone: "warn" };
     case "offline":
-      return { emoji: "🔴", text: "offline", tone: "bad" };
+      return { emoji: "🔴", text: "Offline", tone: "bad" };
     case "synced":
       return {
         emoji: "🟢",
-        text: `đồng bộ ${formatTime(sync.lastSyncedAt)}`,
+        text: `Đồng bộ ${formatTime(sync.lastSyncedAt)}`,
         tone: "good",
       };
     case "idle":
     default:
       return sync.pendingDirty
-        ? { emoji: "🟡", text: "chưa đồng bộ", tone: "warn" }
+        ? { emoji: "🟡", text: "Chưa đồng bộ", tone: "warn" }
         : {
             emoji: "🟢",
-            text: sync.lastSyncedAt ? `đồng bộ ${formatTime(sync.lastSyncedAt)}` : "sẵn sàng",
+            text: sync.lastSyncedAt ? `Đồng bộ ${formatTime(sync.lastSyncedAt)}` : "Sẵn sàng",
             tone: "good",
           };
   }
@@ -92,7 +91,6 @@ export default function Dashboard({
   currentUser,
   onSyncNow,
   onPushNow,
-  onLeaveGroup,
   conflict,
   onResolveConflictPull,
   onResolveConflictOverwrite,
@@ -101,10 +99,8 @@ export default function Dashboard({
   const [adding, setAdding] = useState(false);
   const [showMembers, setShowMembers] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [copyHint, setCopyHint] = useState<string>("");
   const menuRef = useRef<HTMLDivElement>(null);
-  const mobileMenuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!menuOpen) return;
@@ -116,17 +112,6 @@ export default function Dashboard({
     window.addEventListener("mousedown", onClick);
     return () => window.removeEventListener("mousedown", onClick);
   }, [menuOpen]);
-
-  useEffect(() => {
-    if (!mobileMenuOpen) return;
-    const onClick = (e: MouseEvent) => {
-      if (mobileMenuRef.current && !mobileMenuRef.current.contains(e.target as Node)) {
-        setMobileMenuOpen(false);
-      }
-    };
-    window.addEventListener("mousedown", onClick);
-    return () => window.removeEventListener("mousedown", onClick);
-  }, [mobileMenuOpen]);
 
   const doneSet = useMemo(() => new Set(data.doneWeeks), [data.doneWeeks]);
 
@@ -237,109 +222,28 @@ export default function Dashboard({
           </div>
 
           {sync && badge && (
-            <div className="relative" ref={menuRef}>
-              <button
-                onClick={() => setMenuOpen((v) => !v)}
-                className={`px-3 py-2 text-xs sm:text-sm rounded-lg border font-medium flex items-center gap-2 ${badgeToneClass}`}
-                title={sync.groupCode ? `Nhóm: ${sync.groupCode}` : "Chưa tham gia nhóm"}
-              >
-                <span>{badge.emoji}</span>
-                {sync.groupCode ? (
-                  <span className="font-mono max-w-20 lg:max-w-45 truncate">{sync.groupCode}</span>
-                ) : (
-                  <span>local</span>
-                )}
-                <span className="hidden sm:inline">· {badge.text}</span>
-              </button>
-
-              {menuOpen && sync.groupCode && (
-                <div className="absolute right-0 mt-2 w-56 bg-white border border-slate-200 rounded-lg shadow-lg py-1 z-20 text-sm">
-                  <button
-                    onClick={async () => {
-                      setMenuOpen(false);
-                      await onSyncNow?.();
-                    }}
-                    className="w-full text-left px-4 py-2 hover:bg-slate-50"
-                  >
-                    🔄 Đồng bộ ngay
-                  </button>
-                  {sync.pendingDirty && (
-                    <button
-                      onClick={async () => {
-                        setMenuOpen(false);
-                        await onPushNow?.();
-                      }}
-                      className="w-full text-left px-4 py-2 hover:bg-slate-50"
-                    >
-                      ⬆ Đẩy thay đổi
-                    </button>
-                  )}
-                  <button
-                    onClick={async () => {
-                      setMenuOpen(false);
-                      await copyInviteLink();
-                    }}
-                    className="w-full text-left px-4 py-2 hover:bg-slate-50"
-                  >
-                    🔗 Sao chép link mời
-                  </button>
-                  <div className="border-t border-slate-100 my-1" />
-                  <button
-                    onClick={() => {
-                      setMenuOpen(false);
-                      if (confirm("Rời nhóm? Dữ liệu trên server vẫn còn, bạn có thể tham gia lại bằng mã nhóm.")) {
-                        onLeaveGroup?.();
-                      }
-                    }}
-                    className="w-full text-left px-4 py-2 hover:bg-slate-50 text-red-600"
-                  >
-                    🚪 Rời nhóm
-                  </button>
-                </div>
-              )}
-              {copyHint && (
-                <div className="absolute right-0 mt-2 px-3 py-1 bg-slate-800 text-white text-xs rounded shadow">
-                  {copyHint}
-                </div>
-              )}
-            </div>
+            <button
+              className={`px-3 py-2 text-xs sm:text-sm rounded-lg border font-medium flex items-center gap-2 ${badgeToneClass}`}
+              title={sync.groupCode ? `Nhóm: ${sync.groupCode}` : "Chưa tham gia nhóm"}
+            >
+              <span>{badge.emoji}</span>
+              <span>{badge.text}</span>
+            </button>
           )}
 
-          <div className="hidden sm:flex items-center gap-3">
-            <button
-              onClick={() => setShowMembers(true)}
-              className="px-3 py-2 text-sm bg-slate-100 hover:bg-slate-200 rounded-lg font-medium"
-            >
-              👥 Thành viên ({data.members.length})
-            </button>
-            <button
-              onClick={() => downloadAppData(data)}
-              className="px-3 py-2 text-sm bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-medium"
-            >
-              ⬇ Tải dữ liệu về máy
-            </button>
-            <button
-              onClick={() => {
-                if (
-                  confirm(
-                    "Quay lại màn hình bắt đầu? Dữ liệu lưu trong trình duyệt sẽ bị xóa, hãy tải JSON về trước nếu cần.",
-                  )
-                ) {
-                  onReset();
-                }
-              }}
-              className="px-3 py-2 text-sm text-slate-500 hover:text-slate-800"
-            >
-              ⟲ Bắt đầu lại
-            </button>
-          </div>
+          <button
+            onClick={() => setShowMembers(true)}
+            className="hidden sm:inline-flex px-3 py-2 text-sm bg-slate-100 hover:bg-slate-200 rounded-lg font-medium"
+          >
+            👥 Thành viên ({data.members.length})
+          </button>
 
-          <div className="sm:hidden relative" ref={mobileMenuRef}>
+          <div className="relative" ref={menuRef}>
             <button
-              onClick={() => setMobileMenuOpen((v) => !v)}
+              onClick={() => setMenuOpen((v) => !v)}
               className="p-2 rounded-lg hover:bg-slate-100 text-slate-700"
               aria-label="Mở menu"
-              aria-expanded={mobileMenuOpen}
+              aria-expanded={menuOpen}
             >
               <svg
                 width="24"
@@ -357,20 +261,53 @@ export default function Dashboard({
               </svg>
             </button>
 
-            {mobileMenuOpen && (
+            {menuOpen && (
               <div className="absolute right-0 mt-2 w-56 bg-white border border-slate-200 rounded-lg shadow-lg py-1 z-20 text-sm">
                 <button
                   onClick={() => {
-                    setMobileMenuOpen(false);
+                    setMenuOpen(false);
                     setShowMembers(true);
                   }}
-                  className="w-full text-left px-4 py-2 hover:bg-slate-50"
+                  className="sm:hidden w-full text-left px-4 py-2 hover:bg-slate-50"
                 >
                   👥 Thành viên ({data.members.length})
                 </button>
+                {sync && (
+                  <>
+                    <button
+                      onClick={async () => {
+                        setMenuOpen(false);
+                        await onSyncNow?.();
+                      }}
+                      className="w-full text-left px-4 py-2 hover:bg-slate-50"
+                    >
+                      🔄 Đồng bộ ngay
+                    </button>
+                    {sync.pendingDirty && (
+                      <button
+                        onClick={async () => {
+                          setMenuOpen(false);
+                          await onPushNow?.();
+                        }}
+                        className="w-full text-left px-4 py-2 hover:bg-slate-50"
+                      >
+                        ⬆ Đẩy thay đổi
+                      </button>
+                    )}
+                    <button
+                      onClick={async () => {
+                        setMenuOpen(false);
+                        await copyInviteLink();
+                      }}
+                      className="w-full text-left px-4 py-2 hover:bg-slate-50"
+                    >
+                      🔗 Sao chép link mời
+                    </button>
+                  </>
+                )}
                 <button
                   onClick={() => {
-                    setMobileMenuOpen(false);
+                    setMenuOpen(false);
                     downloadAppData(data);
                   }}
                   className="w-full text-left px-4 py-2 hover:bg-slate-50 text-emerald-700"
@@ -380,18 +317,14 @@ export default function Dashboard({
                 <div className="border-t border-slate-100 my-1" />
                 <button
                   onClick={() => {
-                    setMobileMenuOpen(false);
-                    if (
-                      confirm(
-                        "Quay lại màn hình bắt đầu? Dữ liệu lưu trong trình duyệt sẽ bị xóa, hãy tải JSON về trước nếu cần.",
-                      )
-                    ) {
+                    setMenuOpen(false);
+                    if (confirm("Rời nhóm? Dữ liệu trên server vẫn còn, bạn có thể tham gia lại bằng mã nhóm.")) {
                       onReset();
                     }
                   }}
-                  className="w-full text-left px-4 py-2 hover:bg-slate-50 text-slate-600"
+                  className="w-full text-left px-4 py-2 hover:bg-slate-50 text-red-600"
                 >
-                  ⟲ Bắt đầu lại
+                  🚪 Rời nhóm
                 </button>
               </div>
             )}

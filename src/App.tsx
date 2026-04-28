@@ -155,7 +155,6 @@ export default function App() {
           currentUser={identity}
           onSyncNow={sync.pullNow}
           onPushNow={sync.pushNow}
-          onLeaveGroup={() => sync.leaveGroup()}
           conflict={sync.conflict}
           onResolveConflictPull={sync.resolveConflictPull}
           onResolveConflictOverwrite={sync.resolveConflictOverwrite}
