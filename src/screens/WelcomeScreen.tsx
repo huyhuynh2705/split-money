@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import type { CreateResult, JoinResult } from "../hooks/useGroupSync";
+import { normaliseGroupCode } from "../features/sync/api";
+import type { CreateResult, JoinResult } from "../features/sync/useGroupSync";
+import { parseAppData } from "../lib/storage";
 import type { AppData } from "../types";
-import { parseAppData } from "../utils/storage";
-import { normaliseGroupCode } from "../utils/sync";
 
 type Props = {
   initialError?: string | null;

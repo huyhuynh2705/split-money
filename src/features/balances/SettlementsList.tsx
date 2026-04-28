@@ -1,5 +1,5 @@
-import type { Settlement } from "../types";
-import { formatVND } from "../utils/settlement";
+import type { Settlement } from "../../types";
+import { formatVND } from "./settlement";
 
 type Props = {
   settlements: Settlement[];

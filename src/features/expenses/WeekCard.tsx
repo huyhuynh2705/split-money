@@ -1,8 +1,8 @@
 import { useMemo, useState } from "react";
-import type { Expense } from "../types";
-import { computeBalances, computeSettlements, formatVND } from "../utils/settlement";
-import { dayLabelOrder, formatDateVN, getDayLabel } from "../utils/week";
-import SettlementsList from "./SettlementsList";
+import type { Expense } from "../../types";
+import SettlementsList from "../balances/SettlementsList";
+import { computeBalances, computeSettlements, formatVND } from "../balances/settlement";
+import { dayLabelOrder, formatDateVN, getDayLabel } from "./week";
 
 type Props = {
   weekKey: string;

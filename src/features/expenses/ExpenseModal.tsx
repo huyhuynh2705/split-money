@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
-import type { Expense } from "../types";
-import { newId } from "../utils/storage";
-import { formatDateISO } from "../utils/week";
+import { newId } from "../../lib/storage";
+import type { Expense } from "../../types";
+import { formatDateISO } from "./week";
 
 type Props = {
   members: string[];

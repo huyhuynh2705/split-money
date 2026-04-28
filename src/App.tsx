@@ -1,11 +1,11 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import Dashboard from "./components/Dashboard";
-import IdentityModal from "./components/IdentityModal";
-import WelcomeScreen from "./components/WelcomeScreen";
-import { useGroupSync } from "./hooks/useGroupSync";
+import { normaliseGroupCode } from "./features/sync/api";
+import { getIdentity, setIdentity as saveIdentity } from "./features/sync/identity";
+import IdentityModal from "./features/sync/IdentityModal";
+import { useGroupSync } from "./features/sync/useGroupSync";
+import Dashboard from "./screens/Dashboard";
+import WelcomeScreen from "./screens/WelcomeScreen";
 import type { AppData } from "./types";
-import { getIdentity, setIdentity as saveIdentity } from "./utils/identity";
-import { normaliseGroupCode } from "./utils/sync";
 
 function readGroupFromURL(): string | null {
   if (typeof window === "undefined") return null;

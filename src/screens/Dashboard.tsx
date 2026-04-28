@@ -1,14 +1,14 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import BalancesSummary from "../features/balances/BalancesSummary";
+import SettlementsList from "../features/balances/SettlementsList";
+import { computeBalances, computeSettlements, formatVND } from "../features/balances/settlement";
+import ExpenseModal from "../features/expenses/ExpenseModal";
+import WeekCard from "../features/expenses/WeekCard";
+import { compareWeekKeys, getWeekKey } from "../features/expenses/week";
+import MembersModal from "../features/members/MembersModal";
+import type { SyncStatus } from "../features/sync/api";
+import { downloadAppData } from "../lib/storage";
 import type { AppData, Expense } from "../types";
-import { computeBalances, computeSettlements, formatVND } from "../utils/settlement";
-import { downloadAppData } from "../utils/storage";
-import type { SyncStatus } from "../utils/sync";
-import { compareWeekKeys, getWeekKey } from "../utils/week";
-import BalancesSummary from "./BalancesSummary";
-import ExpenseModal from "./ExpenseModal";
-import MembersModal from "./MembersModal";
-import SettlementsList from "./SettlementsList";
-import WeekCard from "./WeekCard";
 
 type SyncInfo = {
   groupCode: string | null;

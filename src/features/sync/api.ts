@@ -1,5 +1,5 @@
-import type { AppData } from "../types";
-import { parseAppData } from "./storage";
+import { parseAppData } from "../../lib/storage";
+import type { AppData } from "../../types";
 
 export const GROUP_CODE_RE = /^[a-z0-9_-]{3,64}$/;
 const ENDPOINT = "/.netlify/functions/data";

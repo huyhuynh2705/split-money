@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import type { Expense } from "../types";
+import type { Expense } from "../../types";
 
 type Props = {
   members: string[];

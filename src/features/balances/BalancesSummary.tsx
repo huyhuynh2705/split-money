@@ -1,5 +1,5 @@
-import type { Balance } from "../types";
-import { formatVND } from "../utils/settlement";
+import type { Balance } from "../../types";
+import { formatVND } from "./settlement";
 
 type Props = {
   balances: Balance[];

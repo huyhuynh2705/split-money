@@ -1,11 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import type { AppData } from "../types";
+import type { AppData } from "../../types";
 import {
   fetchGroup,
   pushWithRetry,
   type SyncSession,
   type SyncStatus,
-} from "../utils/sync";
+} from "./api";
 
 const POLL_INTERVAL_MS = 5_000;
 const PUSH_DEBOUNCE_MS = 800;

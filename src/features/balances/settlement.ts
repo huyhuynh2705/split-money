@@ -1,4 +1,4 @@
-import type { Balance, Expense, Settlement } from "../types";
+import type { Balance, Expense, Settlement } from "../../types";
 
 export function computeBalances(expenses: Expense[], members: string[]): Balance[] {
   const map = new Map<string, number>();
