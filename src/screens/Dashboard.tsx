@@ -99,7 +99,6 @@ export default function Dashboard({
   const [adding, setAdding] = useState(false);
   const [showMembers, setShowMembers] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
-  const [copyHint, setCopyHint] = useState<string>("");
   const menuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -196,12 +195,7 @@ export default function Dashboard({
         document.execCommand("copy");
         document.body.removeChild(ta);
       }
-      setCopyHint("Đã sao chép link mời");
-      setTimeout(() => setCopyHint(""), 2000);
-    } catch {
-      setCopyHint("Không sao chép được");
-      setTimeout(() => setCopyHint(""), 2000);
-    }
+    } catch {}
   };
 
   const badge = sync ? syncBadgeText(sync) : null;
