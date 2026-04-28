@@ -6,15 +6,27 @@ import { formatDateISO } from "../utils/week";
 type Props = {
   members: string[];
   initial?: Expense;
+  currentUser?: string | null;
   noteSuggestions?: string[];
+  amountSuggestions?: number[];
   onSave: (e: Expense) => void;
   onClose: () => void;
 };
 
-export default function ExpenseModal({ members, initial, noteSuggestions = [], onSave, onClose }: Props) {
+export default function ExpenseModal({
+  members,
+  initial,
+  currentUser,
+  amountSuggestions = [],
+  noteSuggestions = [],
+  onSave,
+  onClose,
+}: Props) {
   const todayISO = formatDateISO(new Date());
+  const defaultPayer =
+    initial?.payer ?? (currentUser && members.includes(currentUser) ? currentUser : members[0] ?? "");
   const [date, setDate] = useState(initial?.date ?? todayISO);
-  const [payer, setPayer] = useState(initial?.payer ?? members[0] ?? "");
+  const [payer, setPayer] = useState(defaultPayer);
   const [amount, setAmount] = useState<string>(initial?.amount ? String(initial.amount) : "");
   const [sharedWith, setSharedWith] = useState<string[]>(initial?.sharedWith ?? members);
   const [note, setNote] = useState(initial?.note ?? "");
@@ -23,7 +35,9 @@ export default function ExpenseModal({ members, initial, noteSuggestions = [], o
 
   const filteredSuggestions = useMemo(() => {
     const q = note.trim().toLowerCase();
-    const list = q ? noteSuggestions.filter((s) => s.toLowerCase().includes(q) && s.toLowerCase() !== q) : noteSuggestions;
+    const list = q
+      ? noteSuggestions.filter((s) => s.toLowerCase().includes(q) && s.toLowerCase() !== q)
+      : noteSuggestions;
     return list.slice(0, 8);
   }, [note, noteSuggestions]);
 
@@ -106,6 +120,23 @@ export default function ExpenseModal({ members, initial, noteSuggestions = [], o
 
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-1">Số tiền (nghìn VND)</label>
+            {amountSuggestions.length > 0 && (
+              <div className="mb-2 -mx-1 px-1 flex gap-2 overflow-x-auto pb-1">
+                {amountSuggestions.map((s) => (
+                  <button
+                    key={s}
+                    type="button"
+                    onMouseDown={(e) => e.preventDefault()}
+                    onClick={() => {
+                      setAmount(String(s));
+                    }}
+                    className="shrink-0 px-3 py-1.5 text-xs bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 rounded-full whitespace-nowrap"
+                  >
+                    {s}
+                  </button>
+                ))}
+              </div>
+            )}
             <input
               type="text"
               inputMode="numeric"

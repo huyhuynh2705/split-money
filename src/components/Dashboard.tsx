@@ -29,6 +29,7 @@ type Props = {
   setData: (d: AppData) => void;
   onReset: () => void;
   sync?: SyncInfo;
+  currentUser?: string | null;
   onSyncNow?: () => Promise<void> | void;
   onPushNow?: () => Promise<void> | void;
   onLeaveGroup?: () => void;
@@ -88,6 +89,7 @@ export default function Dashboard({
   setData,
   onReset,
   sync,
+  currentUser,
   onSyncNow,
   onPushNow,
   onLeaveGroup,
@@ -148,6 +150,17 @@ export default function Dashboard({
     return Array.from(counts.entries())
       .sort((a, b) => b[1] - a[1])
       .map(([n]) => n);
+  }, [data.expenses]);
+
+  const amountSuggestions = useMemo(() => {
+    const counts: number[] = [];
+    for (const e of data.expenses) {
+      if (!e.amount) continue;
+      const a = e.amount;
+      if (counts.includes(a)) continue;
+      counts.push(a);
+    }
+    return counts.sort((a, b) => a - b);
   }, [data.expenses]);
 
   const weeks = useMemo(() => {
@@ -387,15 +400,6 @@ export default function Dashboard({
       </header>
 
       <main className="max-w-5xl mx-auto p-4 space-y-6">
-        <section>
-          <button
-            onClick={() => setAdding(true)}
-            className="w-full py-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-semibold shadow-sm transition"
-          >
-            ➕ Thêm chi tiêu mới
-          </button>
-        </section>
-
         <section className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <div className="bg-white border border-slate-200 rounded-xl p-4">
             <div className="text-xs uppercase text-slate-500 tracking-wide">Tổng chi</div>
@@ -409,6 +413,15 @@ export default function Dashboard({
             <div className="text-xs uppercase text-slate-500 tracking-wide">Số tuần</div>
             <div className="text-2xl font-bold text-slate-800 mt-1">{weeks.length}</div>
           </div>
+        </section>
+
+        <section>
+          <button
+            onClick={() => setAdding(true)}
+            className="w-full py-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-semibold shadow-sm transition"
+          >
+            ➕ Thêm chi tiêu mới
+          </button>
         </section>
 
         <section>
@@ -453,7 +466,9 @@ export default function Dashboard({
         <ExpenseModal
           members={data.members}
           initial={editing ?? undefined}
+          currentUser={currentUser ?? null}
           noteSuggestions={noteSuggestions}
+          amountSuggestions={amountSuggestions}
           onSave={upsertExpense}
           onClose={() => {
             setAdding(false);

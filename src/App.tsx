@@ -1,8 +1,10 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Dashboard from "./components/Dashboard";
+import IdentityModal from "./components/IdentityModal";
 import WelcomeScreen from "./components/WelcomeScreen";
 import { useGroupSync } from "./hooks/useGroupSync";
 import type { AppData } from "./types";
+import { getIdentity, setIdentity as saveIdentity } from "./utils/identity";
 import { normaliseGroupCode } from "./utils/sync";
 
 function readGroupFromURL(): string | null {
@@ -39,12 +41,36 @@ export default function App() {
 
   const [bootstrapping, setBootstrapping] = useState<boolean>(Boolean(initialInviteRef.current));
   const [welcomeError, setWelcomeError] = useState<string | null>(null);
+  const [identity, setIdentity] = useState<string | null>(null);
 
   const applyRemoteData = useCallback((d: AppData) => {
     setData(d);
   }, []);
 
   const sync = useGroupSync({ data, applyRemoteData });
+
+  // Load saved identity whenever the active group changes; revalidate against members.
+  useEffect(() => {
+    if (!sync.groupCode || !data) {
+      setIdentity(null);
+      return;
+    }
+    const saved = getIdentity(sync.groupCode);
+    if (saved && data.members.includes(saved)) {
+      setIdentity(saved);
+    } else {
+      setIdentity(null);
+    }
+  }, [sync.groupCode, data]);
+
+  const pickIdentity = useCallback(
+    (member: string) => {
+      if (!sync.groupCode) return;
+      saveIdentity(sync.groupCode, member);
+      setIdentity(member);
+    },
+    [sync.groupCode],
+  );
 
   // Bootstrap from URL group code (only source of persistence now).
   useEffect(() => {
@@ -118,19 +144,26 @@ export default function App() {
   }
 
   if (sync.groupCode && data) {
+    const needsIdentity = !identity && data.members.length > 0;
     return (
-      <Dashboard
-        data={data}
-        setData={setData}
-        onReset={reset}
-        sync={headerInfo}
-        onSyncNow={sync.pullNow}
-        onPushNow={sync.pushNow}
-        onLeaveGroup={() => sync.leaveGroup()}
-        conflict={sync.conflict}
-        onResolveConflictPull={sync.resolveConflictPull}
-        onResolveConflictOverwrite={sync.resolveConflictOverwrite}
-      />
+      <>
+        <Dashboard
+          data={data}
+          setData={setData}
+          onReset={reset}
+          sync={headerInfo}
+          currentUser={identity}
+          onSyncNow={sync.pullNow}
+          onPushNow={sync.pushNow}
+          onLeaveGroup={() => sync.leaveGroup()}
+          conflict={sync.conflict}
+          onResolveConflictPull={sync.resolveConflictPull}
+          onResolveConflictOverwrite={sync.resolveConflictOverwrite}
+        />
+        {needsIdentity && (
+          <IdentityModal members={data.members} groupCode={sync.groupCode} onPick={pickIdentity} />
+        )}
+      </>
     );
   }
 
