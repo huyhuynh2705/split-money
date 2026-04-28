@@ -55,13 +55,16 @@ export default function WeekCard({
           done ? "hover:bg-emerald-50" : "hover:bg-slate-50"
         }`}
       >
-        <button onClick={() => setOpen((v) => !v)} className="flex items-center gap-3 flex-1 min-w-0 text-left">
+        <button
+          onClick={() => setOpen((v) => !v)}
+          className="cursor-pointer flex items-center gap-3 flex-1 text-left flex-1"
+        >
           <span className={`transition-transform text-slate-400 ${open ? "rotate-90" : ""}`}>▶</span>
           <div className="min-w-0">
             <div className="flex items-center gap-2 flex-wrap">
               <span className={`font-semibold ${done ? "text-emerald-800" : "text-slate-800"}`}>{weekKey}</span>
               {done && (
-                <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-semibold bg-emerald-100 text-emerald-700 rounded-full">
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-semibold bg-emerald-100 text-emerald-700 rounded-full whitespace-nowrap">
                   ✓ Đã thanh toán
                 </span>
               )}
@@ -71,11 +74,11 @@ export default function WeekCard({
             </div>
           </div>
         </button>
-        <div className="flex items-center gap-3 shrink-0">
+        <div className="flex items-center gap-3 flex-wrap justify-end">
           <div className={`text-sm font-mono ${done ? "text-emerald-700" : "text-slate-600"}`}>{formatVND(total)}</div>
           <button
             onClick={() => onToggleDone(!done)}
-            className={`text-xs px-3 py-1.5 rounded-lg font-medium transition ${
+            className={`text-xs px-3 py-1.5 rounded-lg font-medium transition w-35 ${
               done
                 ? "bg-white border border-emerald-300 text-emerald-700 hover:bg-emerald-50"
                 : "bg-emerald-600 text-white hover:bg-emerald-700"
