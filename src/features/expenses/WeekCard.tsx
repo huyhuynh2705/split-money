@@ -55,10 +55,7 @@ export default function WeekCard({
           done ? "hover:bg-emerald-50" : "hover:bg-slate-50"
         }`}
       >
-        <button
-          onClick={() => setOpen((v) => !v)}
-          className="cursor-pointer flex items-center gap-3 flex-1 text-left flex-1"
-        >
+        <button onClick={() => setOpen((v) => !v)} className="cursor-pointer flex items-center gap-3 text-left flex-1">
           <span className={`transition-transform text-slate-400 ${open ? "rotate-90" : ""}`}>▶</span>
           <div className="min-w-0">
             <div className="flex items-center gap-2 flex-wrap">
@@ -69,13 +66,13 @@ export default function WeekCard({
                 </span>
               )}
             </div>
-            <div className="text-xs text-slate-500">
-              {expenses.length} chi tiêu · {formatVND(total)}
-            </div>
+            <div className="text-xs text-slate-500">{expenses.length} chi tiêu</div>
           </div>
         </button>
         <div className="flex items-center gap-3 flex-wrap justify-end">
-          <div className={`text-sm font-mono ${done ? "text-emerald-700" : "text-slate-600"}`}>{formatVND(total)}</div>
+          <div className={`text-sm font-mono font-bold ${done ? "text-emerald-700" : "text-slate-600"}`}>
+            {formatVND(total)}
+          </div>
           <button
             onClick={() => onToggleDone(!done)}
             className={`text-xs px-3 py-1.5 rounded-lg font-medium transition w-35 ${
