@@ -134,10 +134,18 @@ export default function App() {
 
   if (bootstrapping) {
     return (
-      <div className="min-h-full flex items-center justify-center p-6 bg-linear-to-br from-slate-50 to-slate-200">
-        <div className="flex flex-col items-center gap-3 text-slate-500">
-          <div className="w-8 h-8 border-4 border-slate-300 border-t-indigo-600 rounded-full animate-spin" />
-          <div>Đang tải dữ liệu nhóm...</div>
+      <div className="min-h-full flex items-center justify-center p-6 bg-slate-950 text-slate-300 relative overflow-hidden">
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0 opacity-60"
+          style={{
+            background:
+              "radial-gradient(700px 400px at 30% 20%, rgba(99,102,241,0.2), transparent 60%), radial-gradient(600px 300px at 80% 80%, rgba(56,189,248,0.12), transparent 60%)",
+          }}
+        />
+        <div className="relative flex flex-col items-center gap-4">
+          <div className="w-10 h-10 border-4 border-slate-800 border-t-indigo-500 rounded-full animate-spin" />
+          <div className="text-slate-400">Đang tải dữ liệu nhóm...</div>
         </div>
       </div>
     );

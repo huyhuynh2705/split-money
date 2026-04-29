@@ -8,12 +8,7 @@ type Props = {
   onClose: () => void;
 };
 
-export default function MembersModal({
-  members,
-  expenses,
-  onSave,
-  onClose,
-}: Props) {
+export default function MembersModal({ members, expenses, onSave, onClose }: Props) {
   const [list, setList] = useState<string[]>(members);
   const [draft, setDraft] = useState("");
   const [error, setError] = useState("");
@@ -46,9 +41,7 @@ export default function MembersModal({
 
   const remove = (m: string) => {
     if (usedSet.has(m)) {
-      setError(
-        `Không thể xóa "${m}" vì đã có chi tiêu liên quan. Hãy xóa các chi tiêu trước.`
-      );
+      setError(`Không thể xóa "${m}" vì đã có chi tiêu liên quan. Hãy xóa các chi tiêu trước.`);
       return;
     }
     setList((prev) => prev.filter((x) => x !== m));
@@ -65,45 +58,45 @@ export default function MembersModal({
 
   return (
     <div
-      className="fixed inset-0 bg-black/40 flex items-center justify-center p-4 z-50"
+      className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-end sm:items-center justify-center sm:p-4 z-50"
       onClick={onClose}
     >
       <div
-        className="bg-white rounded-2xl shadow-2xl w-full max-w-md"
+        className="bg-slate-900 border border-slate-700 sm:rounded-2xl rounded-t-2xl shadow-2xl shadow-black/60 w-full max-w-md max-h-[92vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="p-6 border-b border-slate-100 flex items-center justify-between">
-          <h2 className="text-xl font-bold text-slate-800">Quản lý thành viên</h2>
+        <div className="p-5 sm:p-6 border-b border-slate-800 flex items-center justify-between sticky top-0 bg-slate-900 z-10">
+          <h2 className="text-lg sm:text-xl font-bold text-slate-100">Quản lý thành viên</h2>
           <button
             onClick={onClose}
-            className="text-slate-400 hover:text-slate-700 text-2xl leading-none"
+            className="w-8 h-8 flex items-center justify-center text-slate-400 hover:text-slate-100 hover:bg-slate-800 rounded-lg text-2xl leading-none transition"
             aria-label="Đóng"
           >
             ×
           </button>
         </div>
 
-        <div className="p-6 space-y-4">
+        <div className="p-5 sm:p-6 space-y-4">
           <div className="space-y-2">
             {list.map((m) => {
               const used = usedSet.has(m);
               return (
                 <div
                   key={m}
-                  className="flex items-center justify-between p-3 bg-slate-50 rounded-lg"
+                  className="flex items-center justify-between p-3 bg-slate-800/60 border border-slate-800 rounded-lg"
                 >
-                  <div>
-                    <span className="font-medium text-slate-800">{m}</span>
+                  <div className="min-w-0 flex-1">
+                    <span className="font-medium text-slate-100 truncate">{m}</span>
                     {used && (
-                      <span className="ml-2 text-xs text-slate-500">
-                        (đang dùng)
+                      <span className="ml-2 text-[11px] text-slate-500 px-2 py-0.5 bg-slate-900 border border-slate-700 rounded">
+                        đang dùng
                       </span>
                     )}
                   </div>
                   <button
                     onClick={() => remove(m)}
                     disabled={used}
-                    className="text-red-500 hover:text-red-700 disabled:text-slate-300 disabled:cursor-not-allowed"
+                    className="px-3 py-1.5 text-sm rounded-lg text-rose-400 hover:bg-rose-500/10 hover:text-rose-300 disabled:text-slate-600 disabled:hover:bg-transparent disabled:cursor-not-allowed transition"
                   >
                     Xóa
                   </button>
@@ -118,33 +111,33 @@ export default function MembersModal({
               onChange={(e) => setDraft(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && add()}
               placeholder="Tên thành viên mới..."
-              className="flex-1 px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="flex-1 px-3 py-2.5 bg-slate-900 border border-slate-700 rounded-lg text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/60 focus:border-indigo-500/60 transition"
             />
             <button
               onClick={add}
-              className="px-4 py-2 bg-slate-100 hover:bg-slate-200 rounded-lg font-medium"
+              className="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 rounded-lg font-medium transition"
             >
               Thêm
             </button>
           </div>
 
           {error && (
-            <div className="p-3 bg-red-50 text-red-700 rounded-lg text-sm">
+            <div className="p-3 bg-rose-500/10 border border-rose-500/30 text-rose-300 rounded-lg text-sm">
               {error}
             </div>
           )}
         </div>
 
-        <div className="p-6 border-t border-slate-100 flex gap-3">
+        <div className="p-5 sm:p-6 border-t border-slate-800 flex gap-3 sticky bottom-0 bg-slate-900">
           <button
             onClick={onClose}
-            className="flex-1 py-3 bg-slate-100 hover:bg-slate-200 rounded-lg font-medium"
+            className="flex-1 py-3 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 rounded-lg font-medium transition"
           >
             Hủy
           </button>
           <button
             onClick={submit}
-            className="flex-1 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-semibold"
+            className="flex-1 py-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg font-semibold shadow-lg shadow-indigo-500/20 transition active:scale-[0.99]"
           >
             Lưu
           </button>

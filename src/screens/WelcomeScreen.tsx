@@ -66,11 +66,7 @@ function buildGroupCode(members: string[], suffix: string): string {
   return normaliseGroupCode(base) ?? `group-${today}-${suffix}`;
 }
 
-export default function WelcomeScreen({
-  initialError,
-  onJoinGroup,
-  onCreateGroup,
-}: Props) {
+export default function WelcomeScreen({ initialError, onJoinGroup, onCreateGroup }: Props) {
   const fileRef = useRef<HTMLInputElement>(null);
   const [error, setError] = useState<string>(initialError ?? "");
   const [mode, setMode] = useState<Mode>("menu");
@@ -159,7 +155,6 @@ export default function WelcomeScreen({
         const result = await onCreateGroup(code, buildSeed(), createToken.trim());
         if (result.ok) return;
         if (result.reason === "exists") {
-          // Collision: re-roll suffix and retry transparently.
           suffix = randomSuffix();
           code = buildGroupCode(members, suffix);
           attempt++;
@@ -218,13 +213,32 @@ export default function WelcomeScreen({
     }
   };
 
+  const inputBase =
+    "w-full px-3 py-2.5 bg-slate-900 border border-slate-700 rounded-lg text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/60 focus:border-indigo-500/60 transition";
+
   return (
-    <div className="min-h-full flex items-center justify-center p-6 bg-linear-to-br from-slate-50 to-slate-200">
-      <div className="w-full max-w-xl bg-white rounded-2xl shadow-xl p-8">
-        <div className="text-center mb-8">
-          <div className="text-5xl mb-3">💰</div>
-          <h1 className="text-3xl font-bold text-slate-800">Chia Tiền</h1>
-          <p className="text-slate-500 mt-2">Quản lý chi tiêu nhóm dễ dàng, không cần tài khoản</p>
+    <div className="min-h-full flex items-center justify-center p-4 sm:p-6 bg-slate-950 text-slate-200 relative overflow-hidden">
+      {/* Ambient backdrop */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 opacity-70"
+        style={{
+          background:
+            "radial-gradient(800px 500px at 20% 10%, rgba(99,102,241,0.25), transparent 60%), radial-gradient(700px 400px at 90% 90%, rgba(56,189,248,0.15), transparent 60%)",
+        }}
+      />
+
+      <div className="relative w-full max-w-xl bg-slate-900/80 backdrop-blur-md border border-slate-700/80 rounded-2xl sm:rounded-3xl shadow-2xl shadow-black/40 p-6 sm:p-8">
+        <div className="text-center mb-7 sm:mb-8">
+          <div className="inline-flex items-center justify-center w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-linear-to-br from-indigo-500/20 to-sky-500/20 border border-indigo-500/30 text-4xl sm:text-5xl mb-3 shadow-lg shadow-indigo-500/20">
+            💰
+          </div>
+          <h1 className="text-2xl sm:text-3xl font-bold bg-linear-to-r from-indigo-300 to-sky-300 bg-clip-text text-transparent">
+            Chia Tiền
+          </h1>
+          <p className="text-slate-400 mt-2 text-sm sm:text-base">
+            Quản lý chi tiêu nhóm dễ dàng, không cần tài khoản
+          </p>
         </div>
 
         {mode === "menu" && (
@@ -234,7 +248,7 @@ export default function WelcomeScreen({
                 resetCreateFlow();
                 setMode("create");
               }}
-              className="w-full py-4 px-6 bg-indigo-600 text-white rounded-xl font-semibold hover:bg-indigo-700 transition shadow-sm"
+              className="w-full py-4 px-6 bg-linear-to-r from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-400 text-white rounded-xl font-semibold shadow-lg shadow-indigo-500/30 transition active:scale-[0.99]"
             >
               ✨ Tạo nhóm mới
             </button>
@@ -243,7 +257,7 @@ export default function WelcomeScreen({
                 setError("");
                 setMode("join");
               }}
-              className="w-full py-4 px-6 bg-sky-600 text-white rounded-xl font-semibold hover:bg-sky-700 transition shadow-sm"
+              className="w-full py-4 px-6 bg-linear-to-r from-sky-600 to-sky-500 hover:from-sky-500 hover:to-sky-400 text-white rounded-xl font-semibold shadow-lg shadow-sky-500/30 transition active:scale-[0.99]"
             >
               🔗 Tham gia nhóm
             </button>
@@ -253,7 +267,7 @@ export default function WelcomeScreen({
         {mode === "create" && createStep === "password" && (
           <div className="space-y-4">
             <div>
-              <label htmlFor="create-token" className="block text-sm font-medium text-slate-700 mb-2">
+              <label htmlFor="create-token" className="block text-sm font-medium text-slate-300 mb-2">
                 Mật khẩu
               </label>
               <input
@@ -264,7 +278,7 @@ export default function WelcomeScreen({
                 onKeyDown={(e) => {
                   if (e.key === "Enter") submitPasswordGate();
                 }}
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                className={inputBase}
                 autoComplete="off"
                 spellCheck={false}
                 autoFocus
@@ -278,14 +292,14 @@ export default function WelcomeScreen({
                   setMode("menu");
                   resetCreateFlow();
                 }}
-                className="flex-1 py-3 bg-slate-100 hover:bg-slate-200 rounded-lg font-medium"
+                className="flex-1 py-3 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 rounded-lg font-medium transition"
                 disabled={busy}
               >
                 Quay lại
               </button>
               <button
                 onClick={submitPasswordGate}
-                className="flex-1 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-semibold disabled:opacity-60"
+                className="flex-1 py-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg font-semibold disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-indigo-500/20 transition active:scale-[0.99]"
                 disabled={busy || !createToken}
               >
                 Tiếp tục
@@ -297,17 +311,17 @@ export default function WelcomeScreen({
         {mode === "create" && createStep === "details" && (
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">Thành viên</label>
+              <label className="block text-sm font-medium text-slate-300 mb-2">Thành viên</label>
               <div className="flex flex-wrap gap-2 mb-3">
                 {members.map((m) => (
                   <span
                     key={m}
-                    className="inline-flex items-center gap-1 px-3 py-1 bg-indigo-100 text-indigo-700 rounded-full text-sm"
+                    className="inline-flex items-center gap-1 px-3 py-1 bg-indigo-500/15 text-indigo-200 border border-indigo-500/30 rounded-full text-sm"
                   >
                     {m}
                     <button
                       onClick={() => removeMember(m)}
-                      className="text-indigo-400 hover:text-indigo-700"
+                      className="text-indigo-400 hover:text-indigo-200 ml-1"
                       aria-label={`Xóa ${m}`}
                     >
                       ×
@@ -321,12 +335,12 @@ export default function WelcomeScreen({
                   onChange={(e) => setMemberDraft(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && addMember()}
                   placeholder="Thêm thành viên..."
-                  className="flex-1 px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  className={`flex-1 ${inputBase}`}
                   disabled={busy}
                 />
                 <button
                   onClick={addMember}
-                  className="px-4 py-2 bg-slate-100 hover:bg-slate-200 rounded-lg font-medium"
+                  className="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 rounded-lg font-medium transition"
                   disabled={busy}
                 >
                   Thêm
@@ -335,22 +349,22 @@ export default function WelcomeScreen({
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">Dữ liệu khởi đầu (tuỳ chọn)</label>
+              <label className="block text-sm font-medium text-slate-300 mb-2">Dữ liệu khởi đầu (tuỳ chọn)</label>
               <div className="flex flex-wrap items-center gap-2">
                 <button
                   type="button"
                   onClick={() => fileRef.current?.click()}
-                  className="px-3 py-2 text-sm bg-white border-2 border-slate-200 text-slate-700 rounded-lg font-medium hover:bg-slate-50"
+                  className="px-3 py-2 text-sm bg-slate-800 border border-slate-700 text-slate-200 rounded-lg font-medium hover:bg-slate-700 transition"
                   disabled={busy}
                 >
                   📂 Tải file JSON
                 </button>
                 {seedFromFile && (
-                  <span className="text-xs text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-full px-3 py-1">
+                  <span className="text-xs text-emerald-300 bg-emerald-500/10 border border-emerald-500/30 rounded-full px-3 py-1">
                     Đã chọn file ({seedFromFile.expenses.length} chi tiêu)
                     <button
                       onClick={() => setSeedFromFile(null)}
-                      className="ml-2 text-emerald-500 hover:text-emerald-800"
+                      className="ml-2 text-emerald-400 hover:text-emerald-200"
                     >
                       ×
                     </button>
@@ -368,23 +382,26 @@ export default function WelcomeScreen({
                   e.target.value = "";
                 }}
               />
-              <p className="text-xs text-slate-400 mt-2">
+              <p className="text-xs text-slate-500 mt-2">
                 Hỗ trợ định dạng mới (split-money.json) hoặc cũ (week.json). Bỏ qua nếu muốn bắt đầu trống.
               </p>
             </div>
 
-            <div className="bg-slate-50 border border-slate-200 rounded-lg p-3">
+            <div className="bg-slate-800/60 border border-slate-700 rounded-lg p-3">
               <div className="flex items-center justify-between gap-2">
                 <div className="min-w-0">
-                  <div className="text-xs text-slate-500 mb-1">Mã nhóm (tự sinh, dùng để chia sẻ)</div>
-                  <div className="font-mono text-sm text-slate-800 truncate" title={generatedCode}>
+                  <div className="text-xs text-slate-400 mb-1">Mã nhóm (tự sinh, dùng để chia sẻ)</div>
+                  <div
+                    className="font-mono text-sm text-indigo-200 truncate"
+                    title={generatedCode}
+                  >
                     {generatedCode}
                   </div>
                 </div>
                 <button
                   type="button"
                   onClick={() => setCodeSuffix(randomSuffix())}
-                  className="px-2 py-1 text-xs bg-white border border-slate-200 rounded hover:bg-slate-100"
+                  className="px-2 py-1 text-xs bg-slate-900 border border-slate-700 text-slate-300 rounded hover:bg-slate-800 transition shrink-0"
                   disabled={busy}
                   title="Sinh lại mã"
                 >
@@ -399,14 +416,14 @@ export default function WelcomeScreen({
                   setMode("menu");
                   resetCreateFlow();
                 }}
-                className="flex-1 py-3 bg-slate-100 hover:bg-slate-200 rounded-lg font-medium"
+                className="flex-1 py-3 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 rounded-lg font-medium transition"
                 disabled={busy}
               >
                 Quay lại
               </button>
               <button
                 onClick={() => void tryCreate()}
-                className="flex-1 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-semibold disabled:opacity-60"
+                className="flex-1 py-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg font-semibold disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-indigo-500/20 transition active:scale-[0.99]"
                 disabled={busy}
               >
                 {busy ? "Đang tạo..." : "Tạo nhóm"}
@@ -418,7 +435,7 @@ export default function WelcomeScreen({
         {mode === "join" && (
           <div className="space-y-4">
             <div>
-              <label htmlFor="join-group" className="block text-sm font-medium text-slate-700 mb-2">
+              <label htmlFor="join-group" className="block text-sm font-medium text-slate-300 mb-2">
                 Mã nhóm
               </label>
               <input
@@ -430,7 +447,7 @@ export default function WelcomeScreen({
                   if (e.key === "Enter") void tryJoin();
                 }}
                 placeholder="vd: huy-khoa-truong-20260427-x9k1"
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 font-mono"
+                className={`${inputBase} font-mono`}
                 autoComplete="off"
                 spellCheck={false}
                 disabled={busy}
@@ -444,14 +461,14 @@ export default function WelcomeScreen({
                   setMode("menu");
                   setError("");
                 }}
-                className="flex-1 py-3 bg-slate-100 hover:bg-slate-200 rounded-lg font-medium"
+                className="flex-1 py-3 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 rounded-lg font-medium transition"
                 disabled={busy}
               >
                 Quay lại
               </button>
               <button
                 onClick={() => void tryJoin()}
-                className="flex-1 py-3 bg-sky-600 hover:bg-sky-700 text-white rounded-lg font-semibold disabled:opacity-60"
+                className="flex-1 py-3 bg-sky-600 hover:bg-sky-500 text-white rounded-lg font-semibold disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-sky-500/20 transition active:scale-[0.99]"
                 disabled={busy || !joinGroupCode}
               >
                 {busy ? "Đang kết nối..." : "Tham gia"}
@@ -460,7 +477,11 @@ export default function WelcomeScreen({
           </div>
         )}
 
-        {error && <div className="mt-4 p-3 bg-red-50 text-red-700 rounded-lg text-sm">{error}</div>}
+        {error && (
+          <div className="mt-4 p-3 bg-rose-500/10 border border-rose-500/30 text-rose-300 rounded-lg text-sm">
+            {error}
+          </div>
+        )}
       </div>
     </div>
   );

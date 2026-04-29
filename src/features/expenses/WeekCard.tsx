@@ -46,70 +46,103 @@ export default function WeekCard({
 
   return (
     <div
-      className={`border rounded-xl overflow-hidden shadow-sm transition ${
-        done ? "bg-emerald-50/40 border-emerald-200" : "bg-white border-slate-200"
+      className={`rounded-2xl overflow-hidden border transition shadow-lg shadow-black/20 ${
+        done ? "bg-emerald-500/5 border-emerald-500/30" : "bg-slate-900/70 border-slate-800 hover:border-slate-700"
       }`}
     >
-      <div
-        className={`w-full p-4 flex items-center justify-between gap-3 transition ${
-          done ? "hover:bg-emerald-50" : "hover:bg-slate-50"
-        }`}
-      >
-        <button onClick={() => setOpen((v) => !v)} className="cursor-pointer flex items-center gap-3 text-left flex-1">
-          <span className={`transition-transform text-slate-400 ${open ? "rotate-90" : ""}`}>▶</span>
-          <div className="min-w-0">
+      {/* Header — stacked on mobile, inline on sm+ */}
+      <div className={`p-3 sm:p-4 ${done ? "bg-emerald-500/[0.04]" : ""}`}>
+        <button
+          onClick={() => setOpen((v) => !v)}
+          className="w-full flex items-start gap-3 text-left cursor-pointer group"
+          aria-expanded={open}
+        >
+          <span
+            className={`mt-0.5 shrink-0 w-8 h-8 rounded-lg flex items-center justify-center transition-transform text-sm ${
+              done
+                ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
+                : "bg-slate-800 text-slate-400 border border-slate-700 group-hover:border-slate-600"
+            } ${open ? "rotate-90" : ""}`}
+            aria-hidden
+          >
+            ▶
+          </span>
+          <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 flex-wrap">
-              <span className={`font-semibold ${done ? "text-emerald-800" : "text-slate-800"}`}>{weekKey}</span>
-              {done && (
-                <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-semibold bg-emerald-100 text-emerald-700 rounded-full whitespace-nowrap">
+              <span className={`font-semibold text-base sm:text-lg ${done ? "text-emerald-300" : "text-slate-100"}`}>
+                {weekKey}
+              </span>
+              {done ? (
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 text-[11px] font-semibold bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 rounded-full whitespace-nowrap">
                   ✓ Đã thanh toán
+                </span>
+              ) : (
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 text-[11px] font-semibold bg-slate-500/15 text-slate-300 border border-slate-500/30 rounded-full whitespace-nowrap">
+                  ● Đang mở
                 </span>
               )}
             </div>
-            <div className="text-xs text-slate-500">{expenses.length} chi tiêu</div>
+            <div className="mt-1 flex items-center gap-2 text-xs text-slate-400">
+              <span>{expenses.length} chi tiêu</span>
+              <span className="text-slate-600">•</span>
+              <span className={`font-mono font-semibold ${done ? "text-emerald-400" : "text-indigo-300"}`}>
+                {formatVND(total)}
+              </span>
+            </div>
           </div>
         </button>
-        <div className="flex items-center gap-3 flex-wrap justify-end">
-          <div className={`text-sm font-mono font-bold ${done ? "text-emerald-700" : "text-slate-600"}`}>
-            {formatVND(total)}
-          </div>
+
+        {/* Action row — full width on mobile, aligned right on sm+ */}
+        <div className="mt-3 sm:mt-2 flex justify-end">
           <button
             onClick={() => onToggleDone(!done)}
-            className={`text-xs px-3 py-1.5 rounded-lg font-medium transition w-35 ${
+            className={`w-full sm:w-auto px-4 py-2.5 sm:py-1.5 rounded-lg text-sm font-semibold transition active:scale-[0.98] ${
               done
-                ? "bg-white border border-emerald-300 text-emerald-700 hover:bg-emerald-50"
-                : "bg-emerald-600 text-white hover:bg-emerald-700"
+                ? "bg-slate-800 border border-emerald-500/30 text-emerald-300 hover:bg-emerald-500/10"
+                : "bg-emerald-500 text-emerald-950 hover:bg-emerald-400 shadow-sm shadow-emerald-500/20"
             }`}
             title={done ? "Đánh dấu là chưa thanh toán xong" : "Đánh dấu tuần này đã thanh toán xong"}
           >
-            {done ? "↺ Mở lại" : "✓ Thanh toán xong"}
+            {done ? "↺ Mở lại tuần" : "✓ Thanh toán xong"}
           </button>
         </div>
       </div>
 
       {open && (
-        <div className="border-t border-slate-100 p-4 space-y-4 bg-slate-50">
+        <div className="border-t border-slate-800 p-3 sm:p-4 space-y-5 bg-slate-950/40">
           {grouped.map(([day, list]) => (
             <div key={day}>
-              <div className="text-xs font-semibold text-slate-500 uppercase mb-2">{day}</div>
+              <div className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider mb-2 flex items-center gap-2">
+                <span className="h-px flex-1 bg-slate-800" />
+                <span>{day}</span>
+                <span className="h-px flex-1 bg-slate-800" />
+              </div>
               <div className="space-y-2">
                 {list.map((e) => (
-                  <div key={e.id} className="bg-white p-3 rounded-lg flex items-start gap-3 group">
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <span className="font-medium text-slate-800">{e.payer}</span>
-                        <span className="text-slate-400 text-sm">đã chi</span>
-                        <span className="font-bold text-emerald-600">{formatVND(e.amount)}</span>
+                  <div
+                    key={e.id}
+                    className="bg-slate-900 border border-slate-800 p-3 rounded-xl hover:border-slate-700 transition"
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-baseline flex-wrap gap-x-2 gap-y-1">
+                          <span className="font-semibold text-slate-100 text-sm">{e.payer}</span>
+                          <span className="text-slate-500 text-xs">đã chi</span>
+                          <span className="font-bold text-emerald-400 font-mono">{formatVND(e.amount)}</span>
+                        </div>
+                        <div className="text-[11px] text-slate-500 mt-1.5 flex flex-wrap gap-x-2">
+                          <span className="text-slate-400">{formatDateVN(e.date)}</span>
+                          <span className="text-slate-600">·</span>
+                          <span className="break-words">chia cho {e.sharedWith.join(", ")}</span>
+                        </div>
+                        {e.note && <div className="text-sm text-slate-300 mt-1.5 italic break-words">"{e.note}"</div>}
                       </div>
-                      <div className="text-xs text-slate-500 mt-1">
-                        {formatDateVN(e.date)} · chia cho {e.sharedWith.join(", ")}
-                      </div>
-                      {e.note && <div className="text-sm text-slate-600 mt-1 italic">“{e.note}”</div>}
                     </div>
-                    <div className="flex gap-1">
+                    {/* Actions — visible on mobile, hover-revealed on desktop */}
+                    <div className="mt-2 pt-2 border-t border-slate-800 flex gap-2 sm:justify-end">
                       <button
                         onClick={() => onEdit(e)}
-                        className="text-xs px-2 py-1 text-slate-500 hover:text-indigo-600"
+                        className="flex-1 sm:flex-none px-3 py-1.5 text-xs font-medium bg-slate-800 hover:bg-indigo-500/15 text-slate-300 hover:text-indigo-300 border border-slate-700 hover:border-indigo-500/40 rounded-lg transition"
                         title="Sửa"
                       >
                         ✏️ Sửa
@@ -118,7 +151,7 @@ export default function WeekCard({
                         onClick={() => {
                           if (confirm("Xóa chi tiêu này?")) onDelete(e.id);
                         }}
-                        className="text-xs px-2 py-1 text-slate-500 hover:text-rose-600"
+                        className="flex-1 sm:flex-none px-3 py-1.5 text-xs font-medium bg-slate-800 hover:bg-rose-500/15 text-slate-300 hover:text-rose-300 border border-slate-700 hover:border-rose-500/40 rounded-lg transition"
                         title="Xóa"
                       >
                         🗑 Xoá
@@ -130,18 +163,27 @@ export default function WeekCard({
             </div>
           ))}
 
-          <div className="border-t border-slate-200 pt-4">
-            <div className="text-sm font-semibold text-slate-700 mb-2">Số dư trong tuần</div>
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mb-3">
+          <div className="pt-4 border-t border-slate-800 space-y-3">
+            <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Số dư trong tuần</div>
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
               {balances.map((b) => {
                 const positive = b.amount > 0.01;
                 const negative = b.amount < -0.01;
                 return (
-                  <div key={b.person} className="bg-white p-2 rounded-lg border border-slate-200">
-                    <div className="text-xs text-slate-500">{b.person}</div>
+                  <div
+                    key={b.person}
+                    className={`p-2.5 rounded-lg border ${
+                      positive
+                        ? "bg-emerald-500/5 border-emerald-500/20"
+                        : negative
+                          ? "bg-rose-500/5 border-rose-500/20"
+                          : "bg-slate-900 border-slate-800"
+                    }`}
+                  >
+                    <div className="text-[11px] text-slate-400 truncate">{b.person}</div>
                     <div
-                      className={`font-semibold text-sm ${
-                        positive ? "text-emerald-600" : negative ? "text-rose-600" : "text-slate-600"
+                      className={`font-bold text-sm font-mono mt-0.5 ${
+                        positive ? "text-emerald-400" : negative ? "text-rose-400" : "text-slate-400"
                       }`}
                     >
                       {b.amount > 0 ? "+" : ""}
@@ -151,7 +193,9 @@ export default function WeekCard({
                 );
               })}
             </div>
-            <div className="text-sm font-semibold text-slate-700 mb-2">Giao dịch cần thực hiện trong tuần</div>
+            <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider pt-2">
+              Giao dịch cần thực hiện
+            </div>
             <SettlementsList
               settlements={done ? [] : settlements}
               emptyMessage={done ? "Tuần này đã được đánh dấu thanh toán xong." : "Tất cả đã cân bằng. Không ai nợ ai."}

@@ -74,43 +74,51 @@ export default function ExpenseModal({
     return Number(digits).toLocaleString("vi-VN");
   };
 
+  const inputBase =
+    "w-full px-3 py-2.5 bg-slate-900 border border-slate-700 rounded-lg text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/60 focus:border-indigo-500/60 transition";
+
   return (
-    <div className="fixed inset-0 bg-black/40 flex items-center justify-center p-4 z-50" onClick={onClose}>
+    <div
+      className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-end sm:items-center justify-center sm:p-4 z-50"
+      onClick={onClose}
+    >
       <div
-        className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto"
+        className="bg-slate-900 border border-slate-700 sm:rounded-2xl rounded-t-2xl shadow-2xl shadow-black/60 w-full max-w-lg max-h-[92vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="p-6 border-b border-slate-100 flex items-center justify-between">
-          <h2 className="text-xl font-bold text-slate-800">{initial ? "Sửa chi tiêu" : "Thêm chi tiêu"}</h2>
+        <div className="p-5 sm:p-6 border-b border-slate-800 flex items-center justify-between sticky top-0 bg-slate-900 z-10">
+          <h2 className="text-lg sm:text-xl font-bold text-slate-100">
+            {initial ? "Sửa chi tiêu" : "Thêm chi tiêu"}
+          </h2>
           <button
             onClick={onClose}
-            className="text-slate-400 hover:text-slate-700 text-2xl leading-none"
+            className="w-8 h-8 flex items-center justify-center text-slate-400 hover:text-slate-100 hover:bg-slate-800 rounded-lg text-2xl leading-none transition"
             aria-label="Đóng"
           >
             ×
           </button>
         </div>
 
-        <div className="p-6 space-y-4">
+        <div className="p-5 sm:p-6 space-y-4">
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">Ngày</label>
+            <label className="block text-sm font-medium text-slate-300 mb-1.5">Ngày</label>
             <input
               type="date"
               value={date}
               onChange={(e) => setDate(e.target.value)}
-              className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className={inputBase}
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">Người chi tiền</label>
+            <label className="block text-sm font-medium text-slate-300 mb-1.5">Người chi tiền</label>
             <select
               value={payer}
               onChange={(e) => setPayer(e.target.value)}
-              className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
+              className={`${inputBase} appearance-none`}
             >
               {members.map((m) => (
-                <option key={m} value={m}>
+                <option key={m} value={m} className="bg-slate-900">
                   {m}
                 </option>
               ))}
@@ -118,7 +126,7 @@ export default function ExpenseModal({
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">Số tiền (nghìn VND)</label>
+            <label className="block text-sm font-medium text-slate-300 mb-1.5">Số tiền (nghìn VND)</label>
             {amountSuggestions.length > 0 && (
               <div className="mb-2 -mx-1 px-1 flex gap-2 overflow-x-auto pb-1">
                 {amountSuggestions.map((s) => (
@@ -129,7 +137,7 @@ export default function ExpenseModal({
                     onClick={() => {
                       setAmount(String(s));
                     }}
-                    className="shrink-0 px-3 py-1.5 text-xs bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 rounded-full whitespace-nowrap"
+                    className="shrink-0 px-3 py-1.5 text-xs bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 rounded-full whitespace-nowrap transition"
                   >
                     {s}
                   </button>
@@ -142,23 +150,27 @@ export default function ExpenseModal({
               value={formattedAmount()}
               onChange={(e) => setAmount(e.target.value.replace(/\D/g, ""))}
               placeholder="0"
-              className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-right font-mono"
+              className={`${inputBase} text-right font-mono text-lg`}
             />
           </div>
 
           <div>
             <div className="flex items-center justify-between mb-2">
-              <label className="block text-sm font-medium text-slate-700">Chia cho</label>
+              <label className="block text-sm font-medium text-slate-300">Chia cho</label>
               <div className="flex gap-2 text-xs">
                 <button
                   onClick={() => setSharedWith(members)}
-                  className="text-indigo-600 hover:underline"
+                  className="text-indigo-400 hover:text-indigo-300 hover:underline"
                   type="button"
                 >
                   Chọn tất cả
                 </button>
-                <span className="text-slate-300">|</span>
-                <button onClick={() => setSharedWith([])} className="text-slate-500 hover:underline" type="button">
+                <span className="text-slate-700">|</span>
+                <button
+                  onClick={() => setSharedWith([])}
+                  className="text-slate-400 hover:text-slate-200 hover:underline"
+                  type="button"
+                >
                   Bỏ tất cả
                 </button>
               </div>
@@ -171,28 +183,30 @@ export default function ExpenseModal({
                     key={m}
                     type="button"
                     onClick={() => toggleShared(m)}
-                    className={`flex items-center gap-2 p-2 rounded-lg border-2 transition ${
+                    className={`flex items-center gap-2 p-2.5 rounded-lg border-2 transition active:scale-[0.98] ${
                       checked
-                        ? "bg-indigo-50 border-indigo-500 text-indigo-700"
-                        : "bg-white border-slate-200 text-slate-600"
+                        ? "bg-indigo-500/15 border-indigo-500 text-indigo-200"
+                        : "bg-slate-900 border-slate-700 text-slate-300 hover:border-slate-600"
                     }`}
                   >
                     <span
-                      className={`w-5 h-5 rounded flex items-center justify-center text-xs ${
-                        checked ? "bg-indigo-600 text-white" : "border border-slate-300"
+                      className={`w-5 h-5 rounded flex items-center justify-center text-xs shrink-0 ${
+                        checked
+                          ? "bg-indigo-500 text-white"
+                          : "border border-slate-600 bg-slate-800"
                       }`}
                     >
                       {checked && "✓"}
                     </span>
-                    <span className="font-medium">{m}</span>
+                    <span className="font-medium truncate">{m}</span>
                   </button>
                 );
               })}
             </div>
             {sharedWith.length > 0 && amount && (
-              <p className="mt-2 text-xs text-slate-500">
+              <p className="mt-2 text-xs text-slate-400">
                 Mỗi người chia:{" "}
-                <span className="font-semibold">
+                <span className="font-semibold text-indigo-300 font-mono">
                   {(Number(amount.replace(/\D/g, "")) / sharedWith.length).toLocaleString("vi-VN", {
                     maximumFractionDigits: 2,
                   })}
@@ -203,7 +217,7 @@ export default function ExpenseModal({
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">Ghi chú</label>
+            <label className="block text-sm font-medium text-slate-300 mb-1.5">Ghi chú</label>
             {filteredSuggestions.length > 0 && (
               <div className="mb-2 -mx-1 px-1 flex gap-2 overflow-x-auto pb-1">
                 {filteredSuggestions.map((s) => (
@@ -214,7 +228,7 @@ export default function ExpenseModal({
                     onClick={() => {
                       setNote(s);
                     }}
-                    className="shrink-0 px-3 py-1.5 text-xs bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 rounded-full whitespace-nowrap"
+                    className="shrink-0 px-3 py-1.5 text-xs bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 rounded-full whitespace-nowrap transition"
                   >
                     {s}
                   </button>
@@ -226,23 +240,30 @@ export default function ExpenseModal({
               value={note}
               onChange={(e) => setNote(e.target.value)}
               placeholder="VD: ăn trưa, đổ xăng..."
-              className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className={inputBase}
             />
             {noteSuggestions.length > 0 && !note && (
-              <p className="mt-1 text-xs text-slate-400">Nhấn vào ô để xem gợi ý ghi chú đã nhập trước đây</p>
+              <p className="mt-1 text-xs text-slate-500">Nhấn vào ô để xem gợi ý ghi chú đã nhập trước đây</p>
             )}
           </div>
 
-          {error && <div className="p-3 bg-red-50 text-red-700 rounded-lg text-sm">{error}</div>}
+          {error && (
+            <div className="p-3 bg-rose-500/10 border border-rose-500/30 text-rose-300 rounded-lg text-sm">
+              {error}
+            </div>
+          )}
         </div>
 
-        <div className="p-6 border-t border-slate-100 flex gap-3">
-          <button onClick={onClose} className="flex-1 py-3 bg-slate-100 hover:bg-slate-200 rounded-lg font-medium">
+        <div className="p-5 sm:p-6 border-t border-slate-800 flex gap-3 sticky bottom-0 bg-slate-900">
+          <button
+            onClick={onClose}
+            className="flex-1 py-3 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 rounded-lg font-medium transition"
+          >
             Hủy
           </button>
           <button
             onClick={submit}
-            className="flex-1 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-semibold"
+            className="flex-1 py-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg font-semibold shadow-lg shadow-indigo-500/20 transition active:scale-[0.99]"
           >
             Lưu
           </button>
