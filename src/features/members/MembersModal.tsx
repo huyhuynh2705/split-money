@@ -58,11 +58,11 @@ export default function MembersModal({ members, expenses, onSave, onClose }: Pro
 
   return (
     <div
-      className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-end sm:items-center justify-center sm:p-4 z-50"
+      className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center sm:p-4 z-50"
       onClick={onClose}
     >
       <div
-        className="bg-slate-900 border border-slate-700 sm:rounded-2xl rounded-t-2xl shadow-2xl shadow-black/60 w-full max-w-md max-h-[92vh] overflow-y-auto"
+        className="bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl shadow-black/60 w-full max-w-md max-h-[92vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="p-5 sm:p-6 border-b border-slate-800 flex items-center justify-between sticky top-0 bg-slate-900 z-10">
@@ -122,9 +122,7 @@ export default function MembersModal({ members, expenses, onSave, onClose }: Pro
           </div>
 
           {error && (
-            <div className="p-3 bg-rose-500/10 border border-rose-500/30 text-rose-300 rounded-lg text-sm">
-              {error}
-            </div>
+            <div className="p-3 bg-rose-500/10 border border-rose-500/30 text-rose-300 rounded-lg text-sm">{error}</div>
           )}
         </div>
 

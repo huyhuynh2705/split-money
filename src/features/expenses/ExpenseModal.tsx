@@ -79,17 +79,15 @@ export default function ExpenseModal({
 
   return (
     <div
-      className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-end sm:items-center justify-center sm:p-4 z-50"
+      className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center sm:p-4 z-50"
       onClick={onClose}
     >
       <div
-        className="bg-slate-900 border border-slate-700 sm:rounded-2xl rounded-t-2xl shadow-2xl shadow-black/60 w-full max-w-lg max-h-[92vh] overflow-y-auto"
+        className="bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl shadow-black/60 w-full max-w-lg max-h-[92vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="p-5 sm:p-6 border-b border-slate-800 flex items-center justify-between sticky top-0 bg-slate-900 z-10">
-          <h2 className="text-lg sm:text-xl font-bold text-slate-100">
-            {initial ? "Sửa chi tiêu" : "Thêm chi tiêu"}
-          </h2>
+          <h2 className="text-lg sm:text-xl font-bold text-slate-100">{initial ? "Sửa chi tiêu" : "Thêm chi tiêu"}</h2>
           <button
             onClick={onClose}
             className="w-8 h-8 flex items-center justify-center text-slate-400 hover:text-slate-100 hover:bg-slate-800 rounded-lg text-2xl leading-none transition"
@@ -102,21 +100,12 @@ export default function ExpenseModal({
         <div className="p-5 sm:p-6 space-y-4">
           <div>
             <label className="block text-sm font-medium text-slate-300 mb-1.5">Ngày</label>
-            <input
-              type="date"
-              value={date}
-              onChange={(e) => setDate(e.target.value)}
-              className={inputBase}
-            />
+            <input type="date" value={date} onChange={(e) => setDate(e.target.value)} className={inputBase} />
           </div>
 
           <div>
             <label className="block text-sm font-medium text-slate-300 mb-1.5">Người chi tiền</label>
-            <select
-              value={payer}
-              onChange={(e) => setPayer(e.target.value)}
-              className={`${inputBase} appearance-none`}
-            >
+            <select value={payer} onChange={(e) => setPayer(e.target.value)} className={`${inputBase} appearance-none`}>
               {members.map((m) => (
                 <option key={m} value={m} className="bg-slate-900">
                   {m}
@@ -191,9 +180,7 @@ export default function ExpenseModal({
                   >
                     <span
                       className={`w-5 h-5 rounded flex items-center justify-center text-xs shrink-0 ${
-                        checked
-                          ? "bg-indigo-500 text-white"
-                          : "border border-slate-600 bg-slate-800"
+                        checked ? "bg-indigo-500 text-white" : "border border-slate-600 bg-slate-800"
                       }`}
                     >
                       {checked && "✓"}
@@ -248,9 +235,7 @@ export default function ExpenseModal({
           </div>
 
           {error && (
-            <div className="p-3 bg-rose-500/10 border border-rose-500/30 text-rose-300 rounded-lg text-sm">
-              {error}
-            </div>
+            <div className="p-3 bg-rose-500/10 border border-rose-500/30 text-rose-300 rounded-lg text-sm">{error}</div>
           )}
         </div>
 

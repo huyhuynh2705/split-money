@@ -51,7 +51,7 @@ export default function WeekCard({
       }`}
     >
       {/* Header — stacked on mobile, inline on sm+ */}
-      <div className={`p-3 sm:p-4 ${done ? "bg-emerald-500/[0.04]" : ""}`}>
+      <div className={`p-3 sm:p-4 ${done ? "bg-emerald-500/4" : ""}`}>
         <button
           onClick={() => setOpen((v) => !v)}
           className="w-full flex items-start gap-3 text-left cursor-pointer group"
@@ -133,9 +133,11 @@ export default function WeekCard({
                         <div className="text-[11px] text-slate-500 mt-1.5 flex flex-wrap gap-x-2">
                           <span className="text-slate-400">{formatDateVN(e.date)}</span>
                           <span className="text-slate-600">·</span>
-                          <span className="break-words">chia cho {e.sharedWith.join(", ")}</span>
+                          <span className="wrap-break-word">chia cho {e.sharedWith.join(", ")}</span>
                         </div>
-                        {e.note && <div className="text-sm text-slate-300 mt-1.5 italic break-words">"{e.note}"</div>}
+                        {e.note && (
+                          <div className="text-sm text-slate-300 mt-1.5 italic wrap-break-word">"{e.note}"</div>
+                        )}
                       </div>
                     </div>
                     {/* Actions — visible on mobile, hover-revealed on desktop */}
