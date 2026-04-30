@@ -49,38 +49,35 @@ function formatTime(ts: number | null): string {
 function syncBadgeText(sync: SyncInfo): {
   emoji: string;
   text: string;
-  shortText: string;
   tone: "good" | "warn" | "bad";
 } {
   if (!sync.online) {
-    return { emoji: "🔴", text: "offline", shortText: "Offline", tone: "bad" };
+    return { emoji: "🔴", text: "offline", tone: "bad" };
   }
   switch (sync.status) {
     case "saving":
-      return { emoji: "⏳", text: "Đang lưu...", shortText: "Lưu...", tone: "warn" };
+      return { emoji: "⏳", text: "Đang lưu...", tone: "warn" };
     case "loading":
-      return { emoji: "⏳", text: "Đang tải...", shortText: "Tải...", tone: "warn" };
+      return { emoji: "⏳", text: "Đang tải...", tone: "warn" };
     case "conflict":
-      return { emoji: "⚠️", text: "Xung đột", shortText: "Xung đột", tone: "warn" };
+      return { emoji: "⚠️", text: "Xung đột", tone: "warn" };
     case "error":
-      return { emoji: "⚠️", text: "Lỗi đồng bộ", shortText: "Lỗi", tone: "warn" };
+      return { emoji: "⚠️", text: "Lỗi đồng bộ", tone: "warn" };
     case "offline":
-      return { emoji: "🔴", text: "Offline", shortText: "Offline", tone: "bad" };
+      return { emoji: "🔴", text: "Offline", tone: "bad" };
     case "synced":
       return {
         emoji: "🟢",
         text: `Đồng bộ ${formatTime(sync.lastSyncedAt)}`,
-        shortText: formatTime(sync.lastSyncedAt),
         tone: "good",
       };
     case "idle":
     default:
       return sync.pendingDirty
-        ? { emoji: "🟡", text: "Chưa đồng bộ", shortText: "Chờ lưu", tone: "warn" }
+        ? { emoji: "🟡", text: "Chưa đồng bộ", tone: "warn" }
         : {
             emoji: "🟢",
             text: sync.lastSyncedAt ? `Đồng bộ ${formatTime(sync.lastSyncedAt)}` : "Sẵn sàng",
-            shortText: sync.lastSyncedAt ? formatTime(sync.lastSyncedAt) : "OK",
             tone: "good",
           };
   }
@@ -232,12 +229,11 @@ export default function Dashboard({
 
           {sync && badge && (
             <button
-              className={`shrink-0 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm rounded-lg border font-medium flex items-center gap-1.5 sm:gap-2 ${badgeToneClass}`}
+              className={`shrink-0 min-w-20 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm rounded-lg border font-medium flex items-center gap-1.5 sm:gap-2 ${badgeToneClass}`}
               title={sync.groupCode ? `Nhóm: ${sync.groupCode}` : "Chưa tham gia nhóm"}
             >
               <span>{badge.emoji}</span>
-              <span className="hidden sm:inline">{badge.text}</span>
-              <span className="sm:hidden">{badge.shortText}</span>
+              <span>{badge.text}</span>
             </button>
           )}
 
@@ -379,8 +375,7 @@ export default function Dashboard({
 
         <section>
           <h2 className="text-xs sm:text-sm font-semibold text-slate-400 uppercase tracking-wider mb-3">
-            Giao dịch cần thực hiện{" "}
-            <span className="text-slate-500 font-normal normal-case">(chưa thanh toán)</span>
+            Giao dịch cần thực hiện <span className="text-slate-500 font-normal normal-case">(chưa thanh toán)</span>
           </h2>
           <SettlementsList settlements={settlements} />
         </section>
