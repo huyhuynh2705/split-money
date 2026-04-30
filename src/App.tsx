@@ -174,5 +174,5 @@ export default function App() {
     );
   }
 
-  return <WelcomeScreen initialError={welcomeError} onJoinGroup={sync.joinGroup} onCreateGroup={sync.createGroup} />;
+  return <WelcomeScreen initialError={welcomeError} onCreateGroup={sync.createGroup} />;
 }

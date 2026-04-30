@@ -223,7 +223,7 @@ export default function Dashboard({
           <div className="flex items-center gap-2 mr-auto min-w-0">
             <span className="text-2xl sm:text-3xl">💰</span>
             <h1 className="text-base sm:text-xl font-bold bg-linear-to-r from-indigo-300 to-sky-300 bg-clip-text text-transparent truncate">
-              Chia Tiền
+              Chia Tiền Đi
             </h1>
           </div>
 

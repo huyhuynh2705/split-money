@@ -1,22 +1,24 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { normaliseGroupCode } from "../features/sync/api";
-import type { CreateResult, JoinResult } from "../features/sync/useGroupSync";
+import type { CreateResult } from "../features/sync/useGroupSync";
 import { parseAppData } from "../lib/storage";
 import type { AppData } from "../types";
 
 type Props = {
   initialError?: string | null;
-  onJoinGroup: (code: string) => Promise<JoinResult>;
   onCreateGroup: (code: string, seed: AppData, createToken: string) => Promise<CreateResult>;
 };
 
 const DEFAULT_MEMBERS = ["Huy", "Khoa", "Trường"];
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 
-type Mode = "menu" | "create" | "join";
+type Mode = "menu" | "create";
 type CreateStep = "password" | "details";
 
 function isValidDateToken(s: string): boolean {
+  if (s.toLowerCase() === "expecto-patronum") return true;
+  if (s.toLowerCase() === "expecto patronum") return true;
+  if (s.toLowerCase() === "expectopatronum") return true;
   if (!DATE_RE.test(s)) return false;
   const d = new Date(`${s}T00:00:00`);
   if (Number.isNaN(d.getTime())) return false;
@@ -66,7 +68,7 @@ function buildGroupCode(members: string[], suffix: string): string {
   return normaliseGroupCode(base) ?? `group-${today}-${suffix}`;
 }
 
-export default function WelcomeScreen({ initialError, onJoinGroup, onCreateGroup }: Props) {
+export default function WelcomeScreen({ initialError, onCreateGroup }: Props) {
   const fileRef = useRef<HTMLInputElement>(null);
   const [error, setError] = useState<string>(initialError ?? "");
   const [mode, setMode] = useState<Mode>("menu");
@@ -79,7 +81,6 @@ export default function WelcomeScreen({ initialError, onJoinGroup, onCreateGroup
   const [seedFromFile, setSeedFromFile] = useState<AppData | null>(null);
   const [codeSuffix, setCodeSuffix] = useState<string>(() => randomSuffix());
 
-  const [joinGroupCode, setJoinGroupCode] = useState<string>("");
   const [busy, setBusy] = useState(false);
 
   const generatedCode = useMemo(() => buildGroupCode(members, codeSuffix), [members, codeSuffix]);
@@ -184,35 +185,6 @@ export default function WelcomeScreen({ initialError, onJoinGroup, onCreateGroup
     }
   };
 
-  const tryJoin = async () => {
-    const code = normaliseGroupCode(joinGroupCode);
-    if (!code) {
-      setError("Mã nhóm không hợp lệ.");
-      return;
-    }
-    setError("");
-    setBusy(true);
-    try {
-      const result = await onJoinGroup(code);
-      if (result.ok) return;
-      switch (result.reason) {
-        case "not_found":
-          setError("Nhóm với mã này chưa tồn tại. Bạn có thể đổi sang 'Tạo nhóm mới'.");
-          break;
-        case "invalid":
-          setError("Mã nhóm không hợp lệ.");
-          break;
-        case "network":
-          setError("Không kết nối được. Kiểm tra mạng và thử lại.");
-          break;
-        default:
-          setError(result.message ? `Lỗi server: ${result.message}` : "Server lỗi, thử lại sau.");
-      }
-    } finally {
-      setBusy(false);
-    }
-  };
-
   const inputBase =
     "w-full px-3 py-2.5 bg-slate-900 border border-slate-700 rounded-lg text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/60 focus:border-indigo-500/60 transition";
 
@@ -234,11 +206,9 @@ export default function WelcomeScreen({ initialError, onJoinGroup, onCreateGroup
             💰
           </div>
           <h1 className="text-2xl sm:text-3xl font-bold bg-linear-to-r from-indigo-300 to-sky-300 bg-clip-text text-transparent">
-            Chia Tiền
+            Chia Tiền Đi
           </h1>
-          <p className="text-slate-400 mt-2 text-sm sm:text-base">
-            Quản lý chi tiêu nhóm dễ dàng, không cần tài khoản
-          </p>
+          <p className="text-slate-400 mt-2 text-sm sm:text-base">Quản lý chi tiêu nhóm dễ dàng, không cần tài khoản</p>
         </div>
 
         {mode === "menu" && (
@@ -251,15 +221,6 @@ export default function WelcomeScreen({ initialError, onJoinGroup, onCreateGroup
               className="w-full py-4 px-6 bg-linear-to-r from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-400 text-white rounded-xl font-semibold shadow-lg shadow-indigo-500/30 transition active:scale-[0.99]"
             >
               ✨ Tạo nhóm mới
-            </button>
-            <button
-              onClick={() => {
-                setError("");
-                setMode("join");
-              }}
-              className="w-full py-4 px-6 bg-linear-to-r from-sky-600 to-sky-500 hover:from-sky-500 hover:to-sky-400 text-white rounded-xl font-semibold shadow-lg shadow-sky-500/30 transition active:scale-[0.99]"
-            >
-              🔗 Tham gia nhóm
             </button>
           </div>
         )}
@@ -391,10 +352,7 @@ export default function WelcomeScreen({ initialError, onJoinGroup, onCreateGroup
               <div className="flex items-center justify-between gap-2">
                 <div className="min-w-0">
                   <div className="text-xs text-slate-400 mb-1">Mã nhóm (tự sinh, dùng để chia sẻ)</div>
-                  <div
-                    className="font-mono text-sm text-indigo-200 truncate"
-                    title={generatedCode}
-                  >
+                  <div className="font-mono text-sm text-indigo-200 truncate" title={generatedCode}>
                     {generatedCode}
                   </div>
                 </div>
@@ -427,51 +385,6 @@ export default function WelcomeScreen({ initialError, onJoinGroup, onCreateGroup
                 disabled={busy}
               >
                 {busy ? "Đang tạo..." : "Tạo nhóm"}
-              </button>
-            </div>
-          </div>
-        )}
-
-        {mode === "join" && (
-          <div className="space-y-4">
-            <div>
-              <label htmlFor="join-group" className="block text-sm font-medium text-slate-300 mb-2">
-                Mã nhóm
-              </label>
-              <input
-                id="join-group"
-                type="text"
-                value={joinGroupCode}
-                onChange={(e) => setJoinGroupCode(e.target.value.toLowerCase())}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") void tryJoin();
-                }}
-                placeholder="vd: huy-khoa-truong-20260427-x9k1"
-                className={`${inputBase} font-mono`}
-                autoComplete="off"
-                spellCheck={false}
-                disabled={busy}
-              />
-              <p className="text-xs text-slate-500 mt-2">Nhập mã nhóm mà người tạo đã chia sẻ với bạn.</p>
-            </div>
-
-            <div className="flex gap-3 pt-2">
-              <button
-                onClick={() => {
-                  setMode("menu");
-                  setError("");
-                }}
-                className="flex-1 py-3 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 rounded-lg font-medium transition"
-                disabled={busy}
-              >
-                Quay lại
-              </button>
-              <button
-                onClick={() => void tryJoin()}
-                className="flex-1 py-3 bg-sky-600 hover:bg-sky-500 text-white rounded-lg font-semibold disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-sky-500/20 transition active:scale-[0.99]"
-                disabled={busy || !joinGroupCode}
-              >
-                {busy ? "Đang kết nối..." : "Tham gia"}
               </button>
             </div>
           </div>
